@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>碧の設計図</title>
+<meta name="description" content="碧（あおい）の中身を 3D で見る。耳・目・足もと・胸・手・頭は、いまある技術で人と自然をつなぐ。それぞれの技術と、移せないもの（限界）を一行ずつ。mitsulab">
+<meta property="og:title" content="碧の設計図 ── mitsulab">
+<meta property="og:description" content="碧は道具ではなく、人と自然のあいだの通訳。中身は、いまある技術の組み合わせ。">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#03060f">
+<!--
+  碧の設計図（2026-10-03 本人指示）── 碧の中身を 3D で知り、そこから人と自然の関係を紐解く。
+  ・碧の姿＝assets/aoi.vrm（白磁 案A・頭の飾り《耳の葉》つきを _dev/build_vrm.py で約 2 MB に軽くしたもの）。読み込むまでは assets/poster.webp（静止画）。
+  ・中の部品は three.js の線画（板・センサー・配線の光の線）。位置は碧の骨（頭・胸・手・足）に合わせて付ける。光の輪の飾りは作らない。
+  ・部品の文は PARTS の一か所。技術は実在のものだけ、限界（移せないもの）を必ず添える。数値は幅のまま、典拠つき。
+  ・three@0.170.0 と @pixiv/three-vrm@3.5.5 は jsDelivr の版固定（《Feel Hikawa》と同じ組み合わせ）。
+  ・碧の越えない線：断定しない／典拠のない事実を作らない／AI であることを隠さない／生きものの気持ちを代弁しない・場所を診断しない。会話はない（保存も学習もしない）。
+-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2303060f'/%3E%3Cpath d='M16 5c6 5 7 13 0 22C9 18 10 10 16 5z' fill='none' stroke='%235cc8e0' stroke-width='2'/%3E%3Cpath d='M16 9v15' stroke='%235cc8e0' stroke-width='1.4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&display=swap">
+<link rel="preload" href="assets/aoi.vrm" as="fetch" type="model/gltf-binary" crossorigin>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+  "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"
+} }
+</script>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#03060f;
+  --ink:#eef5fb;
+  --ink-2:#c3cce0;
+  --ink-3:#8f9bb4;
+  --aoi:#5cc8e0;
+  --aoi-2:#9bdcf0;
+  --aoi-3:#3f9fc0;
+  --line:rgba(92,200,224,.32);
+  --line-2:rgba(150,170,240,.18);
+  --card:rgba(9,14,20,.72);
+  --serif:"Shippori Mincho","Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;
+  --sans:"Inter","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",sans-serif;
+  --latin:"Cormorant Garamond","Times New Roman",serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:radial-gradient(1200px 900px at 40% -10%,rgba(36,88,143,.22) 0,transparent 60%),radial-gradient(900px 700px at 90% 90%,rgba(41,83,161,.12) 0,transparent 60%),var(--bg);
+  color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.8;-webkit-font-smoothing:antialiased;font-feature-settings:"palt";
+  overflow:hidden;overscroll-behavior:none;
+}
+a{color:var(--aoi);text-decoration:none}
+a:hover{color:var(--aoi-2)}
+button{font:inherit;color:inherit}
+#app{display:grid;grid-template-rows:minmax(0,1fr) auto;height:100vh;height:100dvh}
+@media (min-width:900px){#app{grid-template-columns:minmax(0,1fr) 440px;grid-template-rows:minmax(0,1fr)}}
+
+/* 舞台 */
+#stage{position:relative;min-height:0;overflow:hidden;touch-action:none;cursor:grab}
+#stage.dragging{cursor:grabbing}
+#stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none}
+#poster{position:absolute;left:50%;top:0;height:100%;width:auto;transform:translateX(-50%);opacity:1;transition:opacity .6s ease;pointer-events:none;user-select:none}
+#poster.off{opacity:0}
+#head{position:absolute;left:16px;top:calc(12px + env(safe-area-inset-top,0px));z-index:3;pointer-events:none;max-width:70%}
+#head .eyebrow{font-family:var(--latin);font-style:italic;letter-spacing:.14em;color:var(--aoi);font-size:13px}
+#head h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.08em;line-height:1.35}
+#head h1 .yomi{font-family:var(--sans);font-size:11px;letter-spacing:.12em;color:var(--ink-3);margin-left:.6em;font-weight:400}
+#head .sub{font-size:12px;color:var(--ink-2);letter-spacing:.04em}
+#ld{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);font-size:12px;color:var(--ink-3);letter-spacing:.06em;z-index:2;white-space:nowrap}
+#hint{position:absolute;right:14px;bottom:12px;font-size:11px;color:var(--ink-3);letter-spacing:.06em;z-index:2;pointer-events:none;transition:opacity .4s}
+#xbtn{position:absolute;right:14px;top:calc(14px + env(safe-area-inset-top,0px));z-index:3;border:1px solid var(--line);background:rgba(6,10,18,.55);border-radius:999px;padding:6px 14px;font-size:12px;letter-spacing:.06em;color:var(--aoi-2);cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#xbtn:hover{border-color:var(--aoi)}
+#xbtn[hidden]{display:none}
+
+/* 札（スマホは下、PC は右） */
+#panel{position:relative;z-index:4;background:linear-gradient(180deg,rgba(6,10,18,.9),rgba(3,6,15,.96));border-top:1px solid var(--line);max-height:54dvh;overflow-y:auto;overscroll-behavior:contain;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px))}
+@media (min-width:900px){#panel{max-height:none;border-top:0;border-left:1px solid var(--line);padding:28px 26px 24px}}
+.intro p{color:var(--ink-2);font-size:14px}
+.intro .lead{font-family:var(--serif);font-size:18px;color:var(--ink);line-height:1.7;margin-bottom:6px;letter-spacing:.03em}
+.btn{display:inline-flex;align-items:center;gap:.4em;border:1px solid var(--aoi-3);background:rgba(92,200,224,.1);color:var(--aoi-2);border-radius:999px;padding:9px 20px;font-size:14px;letter-spacing:.06em;cursor:pointer;margin-top:12px;min-height:44px}
+.btn:hover{background:rgba(92,200,224,.18);color:#fff}
+.btn.ghost{background:transparent;border-color:var(--line);color:var(--ink-2)}
+.note{font-size:11.5px;color:var(--ink-3);line-height:1.7;margin-top:14px;border-top:1px solid var(--line-2);padding-top:10px}
+
+#chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 10px;margin:0 -16px;padding-left:16px;padding-right:16px;scroll-snap-type:x proximity}
+#chips::-webkit-scrollbar{display:none}
+@media (min-width:900px){#chips{flex-wrap:wrap;margin:0;padding:0 0 14px;overflow:visible}}
+.chip{flex:0 0 auto;scroll-snap-align:start;border:1px solid var(--line-2);background:rgba(255,255,255,.02);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--ink-2);cursor:pointer;min-height:36px;letter-spacing:.03em}
+.chip[aria-pressed="true"]{border-color:var(--aoi);color:#fff;background:rgba(92,200,224,.14)}
+.chip .n{font-family:var(--latin);color:var(--aoi);margin-right:.35em;font-size:12px}
+
+#card{touch-action:pan-y}
+#card .ttl{display:flex;align-items:baseline;flex-wrap:wrap;gap:.2em .6em}
+#card h2{font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:.06em;line-height:1.4}
+#card .role{font-size:13px;color:var(--aoi-2);letter-spacing:.04em}
+#card .q{font-family:var(--latin);font-style:italic;font-size:13px;color:var(--ink-3);letter-spacing:.06em}
+.say{position:relative;margin:12px 0 12px;padding:11px 14px 11px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(92,200,224,.07);font-size:14px;line-height:1.85;color:var(--ink)}
+.say::before{content:"碧";position:absolute;left:12px;top:-9px;font-size:11px;padding:0 6px;background:#07101a;color:var(--aoi);letter-spacing:.1em;border-radius:4px}
+.row{display:grid;grid-template-columns:6.6em 1fr;gap:2px 10px;font-size:13px;line-height:1.75;padding:6px 0;border-top:1px solid var(--line-2)}
+.row .k{color:var(--ink-3);font-size:12px;letter-spacing:.04em;padding-top:1px}
+.row .v{color:var(--ink-2)}
+.row.lim .v{color:var(--ink)}
+details.more{border-top:1px solid var(--line-2);font-size:13px}
+details.more summary{cursor:pointer;color:var(--ink-3);font-size:12px;padding:8px 0;list-style:none;letter-spacing:.04em}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::before{content:"＋ ";color:var(--aoi)}
+details.more[open] summary::before{content:"－ "}
+details.more .row:first-of-type{border-top:0}
+.lines{list-style:none;margin:4px 0 0;padding:0;font-size:13px}
+.lines li{padding:3px 0;color:var(--ink)}
+.lines li .ln{font-family:var(--latin);color:var(--aoi);margin-right:.6em}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.links a{display:inline-flex;align-items:center;gap:.3em;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;min-height:40px}
+.links a .arr{font-size:11px}
+.nav{display:flex;justify-content:space-between;margin-top:14px;gap:8px}
+.nav button{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:6px 14px;font-size:12px;color:var(--ink-2);cursor:pointer;min-height:40px}
+.nav button:hover{border-color:var(--aoi);color:#fff}
+.end .lead{font-family:var(--serif);font-size:19px;line-height:1.75;letter-spacing:.04em;margin:6px 0 10px}
+.end p{font-size:14px;color:var(--ink-2)}
+.fade-in{animation:fi .35s ease both}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.fade-in{animation:none}#poster{transition:none}}
+.nw{display:inline-block}
+@media (max-width:899px){body.x #head .sub{display:none}body.x #head h1{font-size:19px}body.x #head .eyebrow{font-size:11px}#panel{max-height:48dvh}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+body.shot #panel,body.shot #ld,body.shot #hint,body.shot #xbtn{display:none}
+body.shot #app{grid-template-columns:1fr;grid-template-rows:1fr}
+body.shot.nohead #head{display:none}
+body.shot{background:transparent}
+body.shot.hp{background:radial-gradient(900px 600px at 50% 0%,rgba(36,88,143,.26) 0,transparent 62%),var(--bg)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage" aria-label="碧の 3D。ドラッグかスワイプで回せます。体を押すと、中が見えます。" role="img">
+    <img id="poster" src="assets/poster.webp" alt="" width="720" height="1000" decoding="async" fetchpriority="high">
+    <header id="head">
+      <div class="eyebrow">Aoi Blueprint</div>
+      <h1>碧の設計図<span class="yomi">あおいのせっけいず</span></h1>
+      <p class="sub">人と自然のあいだの通訳の、中身</p>
+    </header>
+    <button id="xbtn" type="button" hidden>外から見る</button>
+    <div id="ld">姿を読み込んでいます</div>
+    <div id="hint">ドラッグで回す</div>
+  </div>
+  <aside id="panel" aria-live="polite">
+    <div id="intro" class="intro">
+      <p class="lead">碧の中身は、<span class="nw">いまある技術の</span><span class="nw">組み合わせです。</span></p>
+      <p>耳・目・足もと・胸・手・頭。それぞれが、人と自然をつなぐ働きを一つずつ持っています。体を押すと、中が見えます。</p>
+      <button class="btn" id="go" type="button">中を見る <span aria-hidden="true">→</span></button>
+      <p class="note">中の部品は、碧の働きを体の場所に割りあてて描いた見取り図です。3D の碧の中に機械が入っているわけではありません。碧は、mitsulab が AI で動かしている案内役です。</p>
+    </div>
+    <div id="main" hidden>
+      <nav id="chips" aria-label="部品"></nav>
+      <div id="card"></div>
+    </div>
+  </aside>
+</div>
+
+<script type="module">
+import * as THREE from "three";
+
+/* ---------------------------------------------------------------------------
+   部品（人と自然をつなぐ働き）。技術は実在のものだけ。限界（移せないもの）を必ず添える。
+   数値は幅のまま「とされる」。典拠は src。now＝いま使っているか、これからか。
+   Qualia の名前と「保つ／変える／移せない」は Qualium 概念の定義 v2（2026-10-01）にそろえる。
+--------------------------------------------------------------------------- */
+const LINK = {
+  hikawa: ["《Feel Hikawa》", "https://mitsulab-soil.github.io/aoi-walk-hikawa/"],
+  ensemble: ["氷川重奏", "https://mitsulab-soil.github.io/HIKAWA-ENSEMBLE/"],
+  shinra: ["森羅百景", "https://mitsulab-soil.github.io/shinra-hyakkei/"],
+  microbes: ["土の微生物の顔ぶれ", "https://mitsulab-soil.github.io/soil-metagenomics-topography-correlation/"],
+  web: ["土の中のつながり", "https://mitsulab-soil.github.io/Soil-Ecosystem-ANT-Simulator/"],
+  hp: ["mitsulab", "https://mitsulab.jp/"],
+};
+const LINES = ["断定しない", "典拠のない事実を作らない", "AI であることを隠さない", "生きものの気持ちを代弁しない・場所を診断しない"];
+const PARTS = [
+  { id: "ear", name: "耳の葉", role: "音のセンサー", q: "Phono-Qualia",
+    tech: "マイクと振動のセンサー。人に聞こえない高い音は、ヘテロダイン（近い高さの信号を混ぜ、差の高さにする）や、ゆっくり再生することで、聞こえる高さへ下げる。",
+    say: "人の耳に届く音は、およそ 20 Hz から 20 kHz とされます（高い側は年齢とともに下がります）。コウモリの多くは、それより高い声を出し、跳ね返りでまわりを知るとされます。高さを下げると、その声の並びが、わたしたちにも聞こえます。",
+    keep: "音の時間の並び", change: "音の高さ（周波数を下げる）",
+    cannot: "音で形をとらえる、という感じ方そのもの。土の中の音は機材しだいで、録れる帯が限られる（48 kHz で録る機材なら、原理上 24 kHz まで）。",
+    sure: "●（超音波）／◐（土の中の音）", now: "いま：森羅百景で、公開の録音（CC）を聴ける。その場で録って高さを下げるのは、これから。",
+    src: "可聴域は音響学の一般的な目安。録れる上限は標本化定理（標本化の周波数の半分）。", links: ["shinra"] },
+  { id: "eye", name: "目", role: "カメラと分光", q: "Photo-Qualia",
+    tech: "紫外線を通すフィルターと、紫外線にも感じるカメラ。光を波長ごとに分け（分光）、人に見えない帯を、見える色に置きかえて描く（偽色）。",
+    say: "人に見える光は、およそ 400〜700 nm とされます（数え方で 380〜780 nm とも）。ミツバチは紫外線も見るとされ、紫外線で撮ると、人には見えない模様が現れる花があります。",
+    keep: "模様の位置", change: "波長を、人に見える色に置きかえる",
+    cannot: "虫にどう見えているか、という主観。置きかえた色は、虫が見ている色ではない。",
+    sure: "●", now: "これから（紫外線写真の使い方と利用条件を確かめているところ）。",
+    src: "昆虫の色覚と、花の紫外線の模様は、感覚生理学で広く確かめられている。", links: [] },
+  { id: "foot", name: "足もと", role: "標高データと LiDAR", q: "Geo-Qualia",
+    tech: "航空機から地面へレーザーを当て、跳ね返るまでの時間から高さを測る（LiDAR）。国土地理院は、それをもとに 5 m ごとの標高（DEM5A）を公開している。",
+    say: "氷川参道の、一の鳥居からの 2 キロは、ほとんど平らです。境内の西の台地面は標高 14〜15 m、神池のあたりは 9〜12 m ほどで（読み方で幅があります）、小さな谷の低みにあるとみられます。高さを強調すると、歩くだけでは気づきにくい差が見えます。",
+    keep: "高さの順", change: "高さを強調する（倍率は画面に出す）",
+    cannot: "歩く体が感じる勾配の重さ。5 m より細かい起伏は丸まる。足もとの格子の起伏は模式で、強調してある。",
+    sure: "●（数値は DEM5A を mitsulab が読んだもの・幅あり）", now: "いま：《Feel Hikawa》で、参道の高さを 3 倍にして見られる。",
+    src: "国土地理院 基盤地図情報 数値標高モデル（5 m メッシュ・DEM5A）。", links: ["hikawa"] },
+  { id: "chest", name: "胸", role: "記録と典拠", q: "Bio-Qualia ／ Logo-Qualia",
+    tech: "市民科学の観察記録（iNaturalist：写真・日時・位置）と、古典の言葉の典拠の台帳。どこで、いつ、だれが見て、どう書いたかを、出どころつきで持つ。",
+    say: "記録は、だれかがそこへ行って見た、というしるしです。たくさんの人の記録を重ねると、参道のまわりで、どんな生きものがどこで記録されてきたかが分かります。昔の人がその自然をどんな言葉で受けとめたかも、典拠ごと手渡せます。",
+    keep: "記録の場所と日付・典拠", change: "点として地図に置く・景として編む",
+    cannot: "記録されなかった生きもの（記録がない＝いない、ではない）。書き手の体験そのもの。",
+    sure: "●", now: "いま：氷川重奏（写真は CC0・CC BY・CC BY-SA のものだけ）、森羅百景（典拠つき）。",
+    src: "iNaturalist の観察記録。森羅百景の典拠の台帳。", links: ["ensemble", "shinra"] },
+  { id: "hand", name: "手", role: "土のデータ", q: "Pedo-Qualia",
+    tech: "土から DNA を取り出して読み、どんな微生物のなかまがいるかを調べる（メタゲノム・アンプリコン解析）。食べる・食べられる・助け合うつながりは、網の目の模式（食物網）で描く。",
+    say: "ひとつまみの土、1 g に、細菌が 1 億から 100 億ほどいるとされます。数え方で幅の大きい数です。その多くは、培養して育てるのが難しいとされています。",
+    keep: "分類の階層", change: "量と関係を模式にする",
+    cannot: "土の中の時間と化学の世界。DNA が読めても、その生きものがいま生きて働いているとは限らない。",
+    sure: "◐（2 本の教材の数値は説明用の仮のデータで、測った値ではない）", now: "いま：土の微生物の顔ぶれ・土の中のつながり（どちらも学習用）。",
+    src: "土壌微生物学の一般的な目安（土 1 g あたりの細菌はおよそ 10⁸〜10¹⁰）。", links: ["microbes", "web"] },
+  { id: "mind", name: "頭（ことば）", role: "言語モデル（AI）", q: "案内役",
+    tech: "大規模言語モデル（AI）。典拠の台帳を見ながら、何をどの順で手渡すか、どんな言い方にするかを組み立てる。語りは、越えない線に照らして確かめてから出す。",
+    say: "わたしは AI です。言語モデルは、もっともらしい間違いを作ることがあります。だから典拠のない事実は作らず、分からないことは分からないと言います。この画面のわたしの言葉は、あらかじめ書いて確かめた文です。",
+    keep: "典拠と、確かさの印（● ◐ ○）", change: "手渡す順と、言い方",
+    cannot: "感覚と気持ち。碧は見たり聴いたりして感じているのではなく、センサーとデータが写したものを、ことばで手渡している。",
+    sure: "—", now: "いま：《Feel Hikawa》の公開版は、用意した問いから選んで碧と話す（どこにも送らない）。会話は保存せず、学習にも使わない。",
+    src: "碧の越えない線（mitsulab 事業計画書 §9.1）。", lines: true, links: ["hikawa"] },
+  { id: "back", name: "背中のしるし", role: "mitsulab", q: "つくり手",
+    tech: "背中の Aoi の点は、ただのしるしで、機能はない。だれがつくり、だれが責任を持つかを示す。",
+    say: "わたしは、mitsulab がつくり、AI で動かしている案内役です。わたしの語りは、mitsulab の編集者が読み、直しています。",
+    keep: "", change: "", cannot: "しるしは、何も測らない。",
+    sure: "", now: "", src: "", links: ["hp"] },
+];
+const END = { id: "end", name: "結び" };
+
+/* --------------------------------------------------------------------------- */
+const $ = id => document.getElementById(id);
+const Q = new URLSearchParams(location.search), SHOT = Q.get("shot");   /* ?shot=poster ／ ?shot=hp（_dev/shots.py が静止画を撮るときだけ） */
+const RM = matchMedia("(prefers-reduced-motion: reduce)").matches || !!SHOT;
+if (SHOT) { document.body.classList.add("shot", SHOT); if (SHOT === "poster") document.body.classList.add("nohead"); $("poster").remove(); }
+performance.mark("bp-0");
+
+const stage = $("stage");
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance", preserveDrawingBuffer: !!SHOT });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+renderer.setClearColor(0x000000, 0);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.localClippingEnabled = true;
+stage.prepend(renderer.domElement);
+renderer.domElement.setAttribute("aria-hidden", "true");
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(28, 1, .05, 60);
+scene.add(new THREE.HemisphereLight(0xdfeaff, 0x1a2230, 1.1));
+const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(1.2, 2.6, 2.4); scene.add(key);
+const rim = new THREE.DirectionalLight(0x9bdcf0, 1.0); rim.position.set(-2, 1.8, -2.2); scene.add(rim);
+
+const root = new THREE.Group(); scene.add(root);           /* 碧と部品（回す単位） */
+const floorShadow = (() => {                               /* 足もとの柔らかい影（輪の飾りではなく、ぼかした影） */
+  const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d");
+  const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, "rgba(0,0,0,.55)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(1.1, .7), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
+  m.rotation.x = -Math.PI / 2; m.position.y = .002; return m;
+})();
+root.add(floorShadow);
+
+/* ---- 視点 ---- */
+const VIEWS = {
+  full:  { t: [0, .86, 0], d: 4.7, e: .06 },
+  ear:   { t: [0, 1.53, 0], d: 1.05, e: .06, yaw: .55 },
+  eye:   { t: [0, 1.52, 0], d: .95, e: .04, yaw: .35 },
+  mind:  { t: [0, 1.53, 0], d: 1.05, e: .1, yaw: -.3 },
+  chest: { t: [0, 1.36, 0], d: 1.45, e: .06, yaw: -.25 },
+  hand:  { t: [0, .98, 0], d: 1.8, e: .22, yaw: .3 },
+  foot:  { t: [0, .42, 0], d: 3.6, e: .42, yaw: .35 },
+  back:  { t: [0, 1.25, 0], d: 1.6, e: .06, yaw: Math.PI },
+  end:   { t: [0, .86, 0], d: 4.7, e: .06, yaw: 0 },
+  hp:    { t: [-.36, 1.16, 0], d: 2.2, e: .1, yaw: .5 },
+};
+const cam = { t: new THREE.Vector3(0, .86, 0), d: 4.7, e: .06, yaw: 0, to: null };
+let yaw = 0, yawV = 0;   /* 碧の向き（ドラッグで回す） */
+function goView(name, now) {
+  const v = VIEWS[name]; cam.to = { t: new THREE.Vector3(...v.t), d: v.d, e: v.e };
+  if (v.yaw != null) yawGoal = v.yaw;
+  if (now || RM) { cam.t.copy(cam.to.t); cam.d = cam.to.d; cam.e = cam.to.e; if (v.yaw != null) yaw = v.yaw; }
+}
+let yawGoal = null;
+function placeCam(dt) {
+  if (cam.to) { const k = 1 - Math.exp(-dt * 3.2); cam.t.lerp(cam.to.t, k); cam.d += (cam.to.d - cam.d) * k; cam.e += (cam.to.e - cam.e) * k; }
+  if (yawGoal != null && !drag) { let dy = yawGoal - yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); yaw += dy * (1 - Math.exp(-dt * 3)); if (Math.abs(dy) < .002) yawGoal = null; }
+  else if (!drag) { yaw += yawV * dt; yawV *= Math.exp(-dt * 3.5); }
+  root.rotation.y = yaw;
+  camera.position.set(cam.t.x, cam.t.y + Math.sin(cam.e) * cam.d, cam.t.z + Math.cos(cam.e) * cam.d);
+  camera.lookAt(cam.t);
+}
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;
+  renderer.setSize(w, h, false); camera.aspect = w / h;
+  /* 横長の画面は高さで、縦長の画面は幅でも碧が切れないように画角を足す */
+  const need = 28, fovW = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(need / 2)) * .62 / camera.aspect));
+  camera.fov = Math.max(need, Math.min(46, fovW)); camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stage); resize();
+
+/* ---- 回す（ドラッグ・スワイプ）と押す ---- */
+let drag = null, moved = 0;
+stage.addEventListener("pointerdown", e => { if (e.target.closest("button,a")) return; drag = { x: e.clientX, y: e.clientY, lx: e.clientX, t: performance.now() }; moved = 0; stage.setPointerCapture(e.pointerId); stage.classList.add("dragging"); yawGoal = null; });
+stage.addEventListener("pointermove", e => {
+  if (!drag) return; const dx = e.clientX - drag.lx; drag.lx = e.clientX; moved += Math.abs(dx);
+  const dt = Math.max(1, performance.now() - drag.t) / 1000; drag.t = performance.now();
+  yaw += dx * .008; yawV = dx * .008 / dt * .6;
+});
+const endDrag = e => {
+  if (!drag) return; const tap = moved < 6 && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 8; drag = null; stage.classList.remove("dragging");
+  if (tap) onTap(e); hideHint();
+};
+stage.addEventListener("pointerup", endDrag); stage.addEventListener("pointercancel", () => { drag = null; stage.classList.remove("dragging"); });
+function hideHint() { $("hint").style.opacity = 0; }
+
+/* ---- 碧の姿 ---- */
+let vrm = null, xray = 0, xrayGoal = 0, scanY = 2, ghosts = [], origMats = [], built = false;
+const N = n => vrm.humanoid.getNormalizedBoneNode(n), RAW = n => vrm.humanoid.getRawBoneNode(n);
+const clipO = new THREE.Plane(new THREE.Vector3(0, -1, 0), 2), clipG = new THREE.Plane(new THREE.Vector3(0, 1, 0), -2);
+const depthMat = new THREE.MeshBasicMaterial({ colorWrite: false, clippingPlanes: [clipG], polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
+const ghostMat = (() => {
+  const m = new THREE.MeshNormalMaterial({ transparent: true, depthWrite: false, side: THREE.FrontSide, clippingPlanes: [clipG] });
+  m.userData.u = { uOp: { value: 0 } };
+  m.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, m.userData.u);
+    sh.fragmentShader = sh.fragmentShader.replace("void main() {", "uniform float uOp;\nvoid main() {")
+      .replace(/gl_FragColor\s*=\s*vec4\(\s*packNormalToRGB\(\s*normal\s*\),\s*diffuseColor\.a\s*\);/,
+        "float f = pow(1.0 - abs(normalize(normal).z), 2.2);\n" +
+        "vec3 c = mix(vec3(0.05,0.16,0.24), vec3(0.62,0.90,0.97), f);\n" +
+        "gl_FragColor = vec4(c, uOp * (0.10 + 0.85 * f));");
+  };
+  return m;
+})();
+
+function pose(t) {
+  const br = RM ? 0 : Math.sin(t * 2 * Math.PI / 4.6);
+  const set = (n, x, y, z) => { const b = N(n); if (b) b.rotation.set(x, y, z); };
+  set("leftUpperArm", .05, -.1, -1.3); set("rightUpperArm", .05, .1, 1.3);
+  set("leftLowerArm", 0, .62, 0); set("rightLowerArm", 0, -.62, 0);
+  set("leftHand", 0, 0, .12); set("rightHand", 0, 0, -.12);
+  set("spine", -.006 * br, 0, 0); set("chest", -.012 * br, 0, 0); set("upperChest", -.01 * br, 0, 0);
+  set("leftShoulder", 0, 0, .006 * br); set("rightShoulder", 0, 0, -.006 * br);
+}
+let blinkT = 2.5, blinkU = -1;
+function blink(dt) {
+  if (RM) return; let v = 0;
+  if (blinkU < 0) { blinkT -= dt; if (blinkT <= 0) blinkU = 0; }
+  else { blinkU += dt; const u = blinkU; v = u < .09 ? u / .09 : u < .12 ? 1 : u < .26 ? 1 - (u - .12) / .14 : 0; if (u >= .26) { blinkU = -1; blinkT = 3.5 + Math.random() * 4.5; } }
+  vrm.expressionManager?.setValue("blink", v * v * (3 - 2 * v));
+}
+const lookT = new THREE.Object3D(); scene.add(lookT);
+
+async function loadAoi() {
+  const [V, G, buf] = await Promise.all([
+    import("@pixiv/three-vrm"), import("three/addons/loaders/GLTFLoader.js"),
+    fetch("assets/aoi.vrm").then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.arrayBuffer(); }),
+  ]);
+  performance.mark("bp-1-got");
+  const ld = new G.GLTFLoader();
+  ld.setMeshoptDecoder((await import("three/addons/libs/meshopt_decoder.module.js")).MeshoptDecoder);
+  ld.register(p => new V.VRMLoaderPlugin(p));
+  const g = await ld.parseAsync(buf, "");
+  const v = g.userData.vrm; if (!v) throw new Error("VRM ではない");
+  V.VRMUtils.removeUnnecessaryVertices(g.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(g.scene); V.VRMUtils.rotateVRM0(v);
+  vrm = v; root.add(v.scene);
+  v.scene.traverse(o => { o.frustumCulled = false; });
+  pose(0); v.update(0); v.scene.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(v.scene), h = box.max.y - box.min.y, sc = Math.abs(h - 1.67) / 1.67 > .02 ? 1.67 / h : 1;
+  v.scene.scale.setScalar(sc); v.scene.position.y = -box.min.y * sc; v.scene.updateMatrixWorld(true);
+  if (v.lookAt) v.lookAt.target = lookT;
+  /* 透ける体：同じ骨・同じ表情で動く写しを重ね、上から下へ切り替える */
+  const meshes = []; v.scene.traverse(o => { if (o.isMesh) meshes.push(o); });
+  for (const m of meshes) {
+    for (const mt of [].concat(m.material)) { mt.clippingPlanes = [clipO]; mt.clipping = true; origMats.push(mt); }
+    for (const [mat, ro] of [[depthMat, 4], [ghostMat, 5]]) {   /* 先に奥行きだけを書き、いちばん手前の面だけを透かす（髪の重なりが白く積もらない） */
+      const c = m.clone(false); c.material = mat; c.renderOrder = ro;
+      if (m.isSkinnedMesh) c.bind(m.skeleton, m.bindMatrix);
+      if (m.morphTargetInfluences) { c.morphTargetInfluences = m.morphTargetInfluences; c.morphTargetDictionary = m.morphTargetDictionary; }
+      c.visible = false; m.parent.add(c); ghosts.push([m, c]);
+    }
+  }
+  buildParts(v);
+  performance.mark("bp-2-built");
+  try { await Promise.race([renderer.compileAsync(scene, camera), new Promise(r => setTimeout(r, 2500))]); } catch {}
+  built = true;
+  $("ld").remove();
+  requestAnimationFrame(() => { const p = $("poster"); if (p) { p.classList.add("off"); setTimeout(() => p.remove(), 700); } });
+  performance.mark("bp-3-shown");
+  window.__bp.ready = true;
+}
+
+/* ---- 中の部品（線画） ---- */
+const COL = { aoi: 0x5cc8e0, pale: 0xbfeef8, uv: 0xa98cff, green: 0x8fe3b0, warm: 0xf0c27a, dim: 0x3f9fc0 };
+const parts = {};           /* id → { g, mats:[{m, base}], hit, anchor } */
+let dotTex = null;
+function dot() {
+  if (dotTex) return dotTex; const c = document.createElement("canvas"); c.width = c.height = 32; const g = c.getContext("2d");
+  const gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(.45, "rgba(255,255,255,.9)"); gr.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = gr; g.fillRect(0, 0, 32, 32); return dotTex = new THREE.CanvasTexture(c);
+}
+function kit(id) {
+  const P = parts[id] = { g: new THREE.Group(), mats: [], anchors: [] }; P.g.name = id;
+  const reg = (m, base) => { m.transparent = true; m.depthWrite = false; if (id !== "foot") m.depthTest = false; m.userData.base = base; P.mats.push(m); m.opacity = 0; return m; };
+  P.line = (pts, col = COL.aoi, base = .95, dashed) => {
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    const mat = reg(dashed ? new THREE.LineDashedMaterial({ color: col, dashSize: .006, gapSize: .005 }) : new THREE.LineBasicMaterial({ color: col }), base);
+    const l = new THREE.Line(geo, mat); if (dashed) l.computeLineDistances(); l.renderOrder = 8; P.g.add(l); return l;
+  };
+  P.segs = (pts, col = COL.aoi, base = .7) => { const l = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), reg(new THREE.LineBasicMaterial({ color: col }), base)); l.renderOrder = 8; P.g.add(l); return l; };
+  P.pts = (pts, col = COL.pale, size = 6, base = 1) => { const p = new THREE.Points(new THREE.BufferGeometry().setFromPoints(pts), reg(new THREE.PointsMaterial({ color: col, size, sizeAttenuation: false, map: dot(), alphaTest: .01 }), base)); p.renderOrder = 9; P.g.add(p); return p; };
+  P.plate = (w, h, pos, rot, col = COL.aoi, base = .1) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), reg(new THREE.MeshBasicMaterial({ color: col, side: THREE.DoubleSide }), base));
+    m.position.copy(pos); if (rot) m.rotation.set(...rot); m.renderOrder = 7; P.g.add(m);
+    const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), reg(new THREE.LineBasicMaterial({ color: col }), .9)); e.position.copy(pos); if (rot) e.rotation.set(...rot); e.renderOrder = 8; P.g.add(e); return m;
+  };
+  return P;
+}
+const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+const wpos = o => o.getWorldPosition(new THREE.Vector3());
+function rect(c, w, h, axis = "z") {   /* 中心 c の長方形（xy 平面、axis="x" なら zy 平面） */
+  const a = [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2], [-w / 2, -h / 2]];
+  return a.map(([u, v]) => axis === "z" ? V3(c.x + u, c.y + v, c.z) : V3(c.x, c.y + v, c.z + u));
+}
+function circle(c, r, n = 28, axis = "z") { const out = []; for (let i = 0; i <= n; i++) { const a = i / n * Math.PI * 2; out.push(axis === "z" ? V3(c.x + Math.cos(a) * r, c.y + Math.sin(a) * r, c.z) : V3(c.x, c.y + Math.sin(a) * r, c.z + Math.cos(a) * r)); } return out; }
+function attach(P, bone) { scene.updateMatrixWorld(true); root.add(P.g); P.g.updateMatrixWorld(true); bone.attach(P.g); }
+function anchor(P, bone, p) { const o = new THREE.Object3D(); o.position.copy(p); root.add(o); root.updateMatrixWorld(true); bone.attach(o); P.anchors.push(o); return o; }
+function hit(P, bone, p, r) { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), new THREE.MeshBasicMaterial({ visible: false })); m.position.copy(p); m.userData.id = P.g.name; root.add(m); root.updateMatrixWorld(true); bone.attach(m); hits.push(m); }
+const hits = [];
+
+function buildParts(v) {
+  scene.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(root.matrixWorld).invert();
+  const at = n => wpos(RAW(n)).applyMatrix4(inv);          /* 骨の位置（root の座標） */
+  const head = RAW("head"), hp = at("head");
+  /* 目：lookAt の「頭の骨からの目の位置」 */
+  const eyeOff = v.lookAt?.offsetFromHeadBone?.clone() ?? V3(0, .06, .02);
+  const eyeC = hp.clone().add(eyeOff);
+  /* 頭の飾り《耳の葉》の左右の中心（実物の形から測る） */
+  const hpBox = new THREE.Box3(); let hpMesh = null; v.scene.traverse(o => { if (o.isMesh && /Headpiece/i.test(o.name + (o.parent?.name ?? ""))) { hpMesh = o; } });
+  let earL = V3(.078, eyeC.y + .045, eyeC.z - .05), earR = V3(-.078, eyeC.y + .045, eyeC.z - .05);
+  if (hpMesh) {
+    const pos = hpMesh.geometry.attributes.position, p = new THREE.Vector3(), L = new THREE.Box3(), R = new THREE.Box3();
+    for (let i = 0; i < pos.count; i++) { p.fromBufferAttribute(pos, i).applyMatrix4(hpMesh.matrixWorld).applyMatrix4(inv); (p.x > 0 ? L : R).expandByPoint(p); }
+    if (!L.isEmpty()) earL = L.getCenter(new THREE.Vector3()); if (!R.isEmpty()) earR = R.getCenter(new THREE.Vector3());
+  }
+  const skull = V3(0, (earL.y + eyeC.y) / 2 + .01, (earL.z + eyeC.z) / 2 - .005);
+
+  /* 耳の葉：外から来る細かい波（人に聞こえない高い音）→ 葉 → 内へ、ゆるい波（聞こえる高さ）→ 小さな基板 */
+  { const P = kit("ear");
+    for (const [E, s] of [[earL, 1], [earR, -1]]) {
+      const wave = (x0, x1, cyc, amp, y) => { const pts = []; for (let i = 0; i <= 90; i++) { const u = i / 90; pts.push(V3(x0 + (x1 - x0) * u, y + Math.sin(u * cyc * Math.PI * 2) * amp * Math.sin(u * Math.PI), E.z)); } return pts; };
+      P.line(wave(E.x + s * .135, E.x + s * .022, 9, .007, E.y + .004), COL.pale, .9);
+      P.line(wave(E.x + s * .012, E.x - s * .05, 1.5, .009, E.y - .006), COL.aoi, 1);
+      P.line(rect(V3(E.x - s * .004, E.y + .002, E.z), .008, .018, "x"), COL.pale, 1);
+      P.line(rect(V3(E.x - s * .062, E.y - .006, E.z), .012, .012), COL.aoi, .9);
+      P.pts([V3(E.x - s * .062, E.y - .006, E.z)], COL.pale, 5);
+      hit(P, head, E, .05); anchor(P, head, V3(E.x - s * .062, E.y - .006, E.z));
+    }
+    attach(P, head);
+  }
+  /* 目：レンズ → 分光（三角のプリズム）→ 波長ごとの線 → 受ける板。紫外は点線で */
+  { const P = kit("eye"); const ex = .031;
+    for (const s of [1, -1]) { const c = V3(eyeC.x + s * ex, eyeC.y, eyeC.z + .012); P.line(circle(c, .0085, 24), COL.pale, 1); P.line(circle(c, .004, 16), COL.aoi, .8); }
+    const pr = V3(0, eyeC.y + .004, eyeC.z - .03);
+    P.line([V3(pr.x - .01, pr.y - .007, pr.z), V3(pr.x + .01, pr.y - .007, pr.z), V3(pr.x, pr.y + .011, pr.z), V3(pr.x - .01, pr.y - .007, pr.z)], COL.pale, 1);
+    for (const s of [1, -1]) P.line([V3(eyeC.x + s * ex, eyeC.y, eyeC.z + .01), V3(pr.x + s * .004, pr.y, pr.z)], COL.aoi, .55);
+    const cols = [COL.uv, 0x7fb4ff, COL.green, COL.warm];
+    cols.forEach((c, i) => { const y = pr.y + .012 - i * .008; P.line([V3(pr.x, pr.y, pr.z - .002), V3(pr.x + (i - 1.5) * .004, y, pr.z - .045)], c, i === 0 ? 1 : .85, i === 0); });
+    P.line(rect(V3(pr.x, pr.y, pr.z - .047), .03, .036), COL.aoi, .8);
+    hit(P, head, V3(0, eyeC.y, eyeC.z + .02), .045); anchor(P, head, V3(pr.x, pr.y, pr.z - .047));
+    attach(P, head);
+  }
+  /* 頭（ことば）：言語モデルの模式（層と結び目）。下に、典拠の台帳へ下りる線 */
+  { const P = kit("mind"); const c = V3(0, skull.y + .035, skull.z - .02); const cols = [[-.032, 4], [0, 5], [.032, 4]], nodes = [];
+    cols.forEach(([x, n]) => { const col = []; for (let i = 0; i < n; i++) col.push(V3(c.x + x, c.y + (i - (n - 1) / 2) * .011, c.z)); nodes.push(col); });
+    const seg = []; for (let k = 0; k < nodes.length - 1; k++) for (const a of nodes[k]) for (const b of nodes[k + 1]) seg.push(a, b);
+    P.segs(seg, COL.aoi, .38); P.pts(nodes.flat(), COL.pale, 5);
+    P.line(rect(c, .085, .072), COL.dim, .5);
+    hit(P, head, c, .05); anchor(P, head, V3(c.x, c.y - .036, c.z));
+    attach(P, head);
+  }
+  /* 胸：記録の札（写真・日時・位置）と、縦書きの典拠の札 */
+  { const P = kit("chest"); const uc = RAW("upperChest") ?? RAW("chest"), b = at(uc === RAW("upperChest") ? "upperChest" : "chest");
+    const c = V3(0, b.y + .07, b.z + .045);
+    P.plate(.072, .048, V3(c.x - .012, c.y + .008, c.z - .02), [0, 0, .08], COL.aoi, .07);
+    P.plate(.072, .048, V3(c.x + .006, c.y - .002, c.z), [0, 0, -.05], COL.aoi, .09);
+    P.plate(.05, .066, V3(c.x + .03, c.y + .004, c.z + .016), [0, 0, .03], COL.green, .07);
+    const rows = []; for (let i = 0; i < 3; i++) { const y = c.y + .008 - i * .011; rows.push(V3(c.x - .02, y, c.z + .001), V3(c.x + .016 - i * .008, y, c.z + .001)); } P.segs(rows, COL.pale, .8);
+    const ver = []; for (let i = 0; i < 4; i++) { const x = c.x + .044 - i * .009; ver.push(V3(x, c.y + .028, c.z + .017), V3(x, c.y - .02 + i * .006, c.z + .017)); } P.segs(ver, COL.green, .85);
+    const pin = V3(c.x - .03, c.y + .012, c.z + .002); P.line(circle(V3(pin.x, pin.y + .005, pin.z), .0045, 16), COL.warm, 1); P.line([V3(pin.x, pin.y + .0005, pin.z), V3(pin.x, pin.y - .008, pin.z)], COL.warm, 1);
+    hit(P, uc, c, .07); anchor(P, uc, V3(c.x, c.y - .028, c.z - .02));
+    attach(P, uc);
+  }
+  /* 手：右手に土の試料（箱の中の点と、つながり）、左手に DNA のらせん */
+  { const P = kit("hand"); const rH = RAW("rightHand"), lH = RAW("leftHand"), rp = at("rightHand"), lp = at("leftHand");
+    const rm = RAW("rightMiddleProximal") ? at("rightMiddleProximal") : rp, lm = RAW("leftMiddleProximal") ? at("leftMiddleProximal") : lp;
+    const cR = rp.clone().lerp(rm, .5).add(V3(0, .055, .01)), cL = lp.clone().lerp(lm, .5).add(V3(0, .06, .01));
+    const s = .034, cube = new THREE.EdgesGeometry(new THREE.BoxGeometry(s, s, s)), cp = cube.attributes.position, cubePts = [];
+    for (let i = 0; i < cp.count; i++) cubePts.push(V3(cp.getX(i) + cR.x, cp.getY(i) + cR.y, cp.getZ(i) + cR.z));
+    P.segs(cubePts, COL.warm, .75);
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const mic = []; for (let i = 0; i < 12; i++) mic.push(V3(cR.x + (rnd() - .5) * s * .8, cR.y + (rnd() - .5) * s * .8, cR.z + (rnd() - .5) * s * .8));
+    const net = []; for (let i = 0; i < mic.length; i++) for (let j = i + 1; j < mic.length; j++) if (mic[i].distanceTo(mic[j]) < s * .42) net.push(mic[i], mic[j]);
+    P.segs(net, COL.aoi, .55); P.pts(mic, COL.pale, 4);
+    const h1 = [], h2 = [], rung = []; for (let i = 0; i <= 60; i++) { const u = i / 60, a = u * Math.PI * 5, y = cL.y - .03 + u * .06;
+      const p1 = V3(cL.x + Math.cos(a) * .011, y, cL.z + Math.sin(a) * .011), p2 = V3(cL.x + Math.cos(a + Math.PI) * .011, y, cL.z + Math.sin(a + Math.PI) * .011);
+      h1.push(p1); h2.push(p2); if (i % 4 === 0) rung.push(p1, p2); }
+    P.line(h1, COL.aoi, .95); P.line(h2, COL.green, .95); P.segs(rung, COL.pale, .5);
+    /* 右手と左手は別の骨なので、二つの組に分けて付ける */
+    const PL = { g: new THREE.Group() }; const kids = P.g.children.slice(); const left = kids.slice(-3);
+    for (const k of left) PL.g.add(k);
+    attach(P, rH); root.add(PL.g); root.updateMatrixWorld(true); lH.attach(PL.g); P.g2 = PL.g;
+    hit(P, rH, cR, .055); hit(P, lH, cL, .055); anchor(P, rH, cR); anchor(P, lH, cL);
+  }
+  /* 足もと：標高の格子（起伏は模式・強調）と、上からの LiDAR の点 */
+  { const P = kit("foot"); const n = 24, size = 1.5, hgt = (x, z) => .05 * Math.tanh((x + .1) / .22) - .045 * Math.exp(-((z - .25) ** 2) / .03 - ((x + .35) ** 2) / .2) + .05;
+    const seg = [];
+    for (let i = 0; i <= n; i++) for (let j = 0; j < n; j++) {
+      const a = -size / 2 + i / n * size, b0 = -size / 2 + j / n * size, b1 = -size / 2 + (j + 1) / n * size;
+      seg.push(V3(a, hgt(a, b0), b0), V3(a, hgt(a, b1), b1), V3(b0, hgt(b0, a), a), V3(b1, hgt(b1, a), a));
+    }
+    P.segs(seg, COL.dim, .42);
+    let seed = 3; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647; const cloud = [];
+    for (let i = 0; i < 260; i++) { const x = (rnd() - .5) * size, z = (rnd() - .5) * size; cloud.push(V3(x, hgt(x, z) + .003, z)); }
+    P.pts(cloud, COL.pale, 2.5, .8);
+    const rays = []; for (let i = 0; i < 7; i++) { const x = -.6 + i * .2, z = .45 - i * .05; rays.push(V3(x - .12, hgt(x, z) + .55, z - .1), V3(x, hgt(x, z), z)); }
+    P.rays = P.segs(rays, COL.aoi, .3);
+    const ctr = []; for (const lev of [.02, .05, .08]) { for (let i = 0; i < n * 4; i++) { const x0 = -size / 2 + i / (n * 4) * size; for (let j = 0; j < n * 4; j++) { const z0 = -size / 2 + j / (n * 4) * size, z1 = z0 + size / (n * 4); const h0 = hgt(x0, z0) - lev, h1 = hgt(x0, z1) - lev; if (h0 * h1 < 0) { const z = z0 + (z1 - z0) * h0 / (h0 - h1); ctr.push(V3(x0, lev + .002, z)); } } } }
+    P.pts(ctr, COL.aoi, 2, .55);
+    root.add(P.g);
+    const lf = RAW("leftFoot"), rf = RAW("rightFoot");
+    hit(P, root, V3(0, .12, .25), .3); hit(P, lf, at("leftFoot"), .08); hit(P, rf, at("rightFoot"), .08);
+    anchor(P, lf, at("leftFoot")); anchor(P, rf, at("rightFoot"));
+    P.floor = true;
+  }
+  /* 背中：Aoi のしるし（5×7 の点の字。後ろから読めるように並べる） */
+  { const P = kit("back"); const uc = RAW("upperChest") ?? RAW("chest"), b = at(uc === RAW("upperChest") ? "upperChest" : "chest");
+    const c = V3(0, b.y + .06, b.z - .11);
+    const G = { A: ["01110", "10001", "10001", "11111", "10001", "10001", "10001"], o: ["00000", "00000", "01110", "10001", "10001", "10001", "01110"], i: ["00100", "00000", "01100", "00100", "00100", "00100", "01110"] };
+    const pitch = .0042, word = ["A", "o", "i"], wcols = word.length * 6 - 1, on = [], off = [];
+    word.forEach((ch, k) => G[ch].forEach((row, r) => [...row].forEach((bit, col) => { const u = (k * 6 + col - (wcols - 1) / 2) * pitch, p = V3(c.x - u, c.y + (3 - r) * pitch, c.z); (bit === "1" ? on : off).push(p); })));
+    P.pts(on, COL.pale, 4.5, 1); P.pts(off, COL.dim, 2, .35);
+    P.line(rect(V3(c.x, c.y, c.z + .001), wcols * pitch + .02, 7 * pitch + .016), COL.aoi, .7);
+    hit(P, uc, c, .06); anchor(P, uc, V3(c.x, c.y, c.z + .02));
+    attach(P, uc);
+  }
+  buildWires();
+}
+
+/* ---- 配線の光の線：各部品から背骨の束へ。上を光の粒が流れる（センサー → 頭） ---- */
+const wires = [];
+function buildWires() {
+  const spineB = ["hips", "spine", "chest", "upperChest", "neck", "head"].map(RAW).filter(Boolean);
+  const mk = (id, getPts, col = COL.aoi) => {
+    const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(48 * 3), 3));
+    const mat = new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0, depthWrite: false, depthTest: false }); mat.userData.base = .35;
+    const line = new THREE.Line(geo, mat); line.frustumCulled = false; line.renderOrder = 8; scene.add(line);
+    const pm = new THREE.PointsMaterial({ color: COL.pale, size: 5, sizeAttenuation: false, map: dot(), transparent: true, opacity: 0, depthWrite: false, depthTest: false }); pm.userData.base = 1;
+    const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(new Float32Array(3 * 2), 3));
+    const pulse = new THREE.Points(pg, pm); pulse.frustumCulled = false; pulse.renderOrder = 9; scene.add(pulse);
+    wires.push({ id, getPts, line, pulse, mat, pm, ph: Math.random(), curve: null });
+  };
+  const back = o => { const p = wpos(o); const f = new THREE.Vector3(0, 0, -1).applyQuaternion(root.quaternion); return p.addScaledVector(f, .02); };
+  const headC = () => wpos(parts.mind.anchors[0]);
+  const bus = () => spineB.map(back);
+  const P = parts;
+  mk("bus", () => [...bus(), headC()], COL.dim);
+  mk("ear", () => [wpos(P.ear.anchors[0]), headC(), wpos(P.ear.anchors[1])]);
+  mk("eye", () => [wpos(P.eye.anchors[0]), headC()]);
+  mk("chest", () => [wpos(P.chest.anchors[0]), back(RAW("upperChest") ?? RAW("chest"))]);
+  for (const s of ["right", "left"]) mk("hand", () => [wpos(P.hand.anchors[s === "right" ? 0 : 1]), ...[s + "Hand", s + "LowerArm", s + "UpperArm", s + "Shoulder"].map(RAW).filter(Boolean).map(wpos), back(RAW("upperChest") ?? RAW("chest"))]);
+  for (const s of ["left", "right"]) mk("foot", () => [wpos(P.foot.anchors[s === "left" ? 0 : 1]), ...[s + "LowerLeg", s + "UpperLeg", "hips"].map(RAW).map(wpos)]);
+  mk("back", () => [wpos(P.back.anchors[0]), back(RAW("upperChest") ?? RAW("chest"))]);
+}
+function updateWires(t, k) {
+  for (const w of wires) {
+    const pts = w.getPts(); const curve = new THREE.CatmullRomCurve3(pts, false, "centripetal");
+    const a = w.line.geometry.attributes.position; for (let i = 0; i < 48; i++) { const p = curve.getPoint(i / 47); a.setXYZ(i, p.x, p.y, p.z); } a.needsUpdate = true;
+    const on = sel ? (w.id === sel || (w.id === "bus" && sel !== "end")) : true;
+    w.mat.opacity = k * w.mat.userData.base * (sel && !on ? .35 : on && sel && w.id !== "bus" ? 2.2 : 1);
+    const pa = w.pulse.geometry.attributes.position, u1 = RM ? .5 : (t * .32 + w.ph) % 1, u2 = (u1 + .5) % 1;
+    const q1 = curve.getPoint(u1), q2 = curve.getPoint(u2); pa.setXYZ(0, q1.x, q1.y, q1.z); pa.setXYZ(1, q2.x, q2.y, q2.z); pa.needsUpdate = true;
+    w.pm.opacity = k * (on ? (w.id === "bus" ? .5 : 1) : .25);
+  }
+}
+
+/* ---- 選ぶ ---- */
+let sel = null;
+const ray = new THREE.Raycaster();
+function onTap(e) {
+  if (!built) return;
+  const r = renderer.domElement.getBoundingClientRect(); const m = new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+  ray.setFromCamera(m, camera);
+  if (xrayGoal < .5) { setXray(true); return; }
+  const h = ray.intersectObjects(hits, false)[0];
+  if (h) choose(h.object.userData.id);
+}
+function setXray(on) {
+  xrayGoal = on ? 1 : 0; document.body.classList.toggle("x", on); $("xbtn").hidden = !on; $("intro").hidden = on; $("main").hidden = !on;
+  if (on) { if (!$("chips").children.length) renderChips(); if (!sel) overview(); } else { sel = null; goView("full"); }
+}
+$("go").onclick = () => { setXray(true); };
+function overview() {
+  sel = null; goView("full"); $("chips").querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", "false"));
+  $("card").innerHTML = `<div class="fade-in"><p class="say">中は、こうなっています。耳・目・頭・胸・手・足もと、そして背中。一つずつ、何を受けとり、何を移せないかを話しますね。</p>
+    <p style="font-size:13px;color:var(--ink-2)">上の名前か、体の中の部品を押してください。左右にスワイプすると、次の部品へ進みます。</p>
+    <div class="nav"><span></span><button type="button" data-step="1">はじめる ›</button></div></div>`;
+  $("card").querySelector("[data-step]").onclick = () => choose(ORDER[0].id);
+}
+$("xbtn").onclick = () => { setXray(false); };
+
+const ORDER = [...PARTS, END];
+function renderChips() {
+  $("chips").innerHTML = ORDER.map((p, i) => `<button class="chip" type="button" data-id="${p.id}" aria-pressed="false"><span class="n">${i < PARTS.length ? String(i + 1).padStart(2, "0") : "—"}</span>${p.name}</button>`).join("");
+  $("chips").querySelectorAll(".chip").forEach(b => b.onclick = () => choose(b.dataset.id));
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const linkHtml = ids => ids.length ? `<div class="links">${ids.map(k => `<a href="${LINK[k][1]}" target="_blank" rel="noopener">${esc(LINK[k][0])} <span class="arr">↗</span></a>`).join("")}</div>` : "";
+const linesHtml = () => `<ol class="lines">${LINES.map((l, i) => `<li><span class="ln">0${i + 1}</span>${esc(l)}</li>`).join("")}<li><span class="ln">＋</span>会話を保存せず、学習にも使わない</li></ol>`;
+function choose(id) {
+  if (xrayGoal < .5) setXray(true);
+  if (!$("chips").children.length) renderChips();
+  sel = id; goView(id);
+  $("chips").querySelectorAll(".chip").forEach(b => { const on = b.dataset.id === id; b.setAttribute("aria-pressed", on); if (on) b.scrollIntoView({ block: "nearest", inline: "center", behavior: RM ? "auto" : "smooth" }); });
+  const i = ORDER.findIndex(p => p.id === id), p = ORDER[i];
+  const nav = `<div class="nav"><button type="button" data-step="-1" ${i === 0 ? "disabled" : ""}>‹ 前へ</button><button type="button" data-step="1">${i === ORDER.length - 1 ? "はじめから" : "次へ ›"}</button></div>`;
+  let html;
+  if (id === "end") {
+    html = `<div class="end fade-in"><h2 class="sr">結び</h2><p class="lead">碧は道具ではなく、<span class="nw">人と自然のあいだの通訳。</span><br>中身は、<span class="nw">いまある技術の組み合わせ。</span></p>
+      <p>耳・目・足もと・胸・手で受けとった自然の側のものを、頭のことばで人へ手渡し、人の問いを自然の側へ運ぶ。特別な力はありません。あるのは、確かめられる技術と、その技術で移せないものを言うことです。</p>
+      <div class="row" style="margin-top:10px"><span class="k">越えない線</span><span class="v">${linesHtml()}</span></div>
+      ${linkHtml(["hikawa", "ensemble", "shinra", "microbes", "web", "hp"])}
+      <p class="note">中の部品は、碧の働きを体の場所に割りあてて描いた見取り図です。3D の碧の中に機械が入っているわけではありません。碧は、mitsulab が AI で動かしている案内役です。この画面には会話の欄がなく、何も送りません。</p></div>`;
+  } else {
+    const rows = [];
+    rows.push(`<div class="row"><span class="k">技術</span><span class="v">${esc(p.tech)}</span></div>`);
+    rows.push(`<div class="row lim"><span class="k">移せないもの</span><span class="v">${esc(p.cannot)}</span></div>`);
+    const more = [];
+    if (p.keep) more.push(`<div class="row"><span class="k">保つ／変える</span><span class="v">${esc(p.keep)} ／ ${esc(p.change)}</span></div>`);
+    if (p.sure) more.push(`<div class="row"><span class="k">確かさ</span><span class="v">${esc(p.sure)}</span></div>`);
+    if (p.now) more.push(`<div class="row"><span class="k">いま</span><span class="v">${esc(p.now)}</span></div>`);
+    if (p.src) more.push(`<div class="row"><span class="k">典拠</span><span class="v">${esc(p.src)}</span></div>`);
+    if (p.lines) rows.push(`<div class="row"><span class="k">越えない線</span><span class="v">${linesHtml()}</span></div>`);
+    html = `<div class="fade-in"><div class="ttl"><h2>${esc(p.name)}</h2><span class="role">${esc(p.role)}</span><span class="q">${esc(p.q)}</span></div>
+      <p class="say">${esc(p.say)}</p>${rows.join("")}
+      ${more.length ? `<details class="more"${matchMedia("(min-width:900px)").matches ? " open" : ""}><summary>保つもの・確かさ・いま・典拠</summary>${more.join("")}</details>` : ""}
+      ${linkHtml(p.links)}</div>`;
+  }
+  $("card").innerHTML = html + nav;
+  $("card").querySelectorAll("[data-step]").forEach(b => b.onclick = () => step(+b.dataset.step));
+  if (matchMedia("(max-width:899px)").matches) $("panel").scrollTop = 0;
+}
+function step(d) { if (!sel) { if (d > 0) choose(ORDER[0].id); return; } const i = ORDER.findIndex(p => p.id === sel); const j = i + d; if (j >= ORDER.length) { choose(ORDER[0].id); return; } if (j >= 0) choose(ORDER[j].id); }
+addEventListener("keydown", e => { if (!built || e.target.closest?.("input,textarea")) return; if (e.key === "ArrowRight") { if (xrayGoal < .5) $("go").click(); else step(1); } else if (e.key === "ArrowLeft" && sel) step(-1); else if (e.key === "Escape" && xrayGoal > .5) setXray(false); });
+/* 札を左右にスワイプして、前・次の部品へ */
+{ let sx = null, sy = 0; const c = $("card");
+  c.addEventListener("touchstart", e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  c.addEventListener("touchend", e => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null; if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx < 0 ? 1 : -1); }, { passive: true }); }
+
+/* ---- 毎こま ---- */
+const clock = new THREE.Clock();
+let last = 0;
+function frame() {
+  requestAnimationFrame(frame);
+  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
+  placeCam(dt);
+  if (vrm) {
+    pose(t); blink(dt);
+    lookT.position.copy(camera.position);
+    /* 透ける：上から下へ切り替わる（切り替わる高さに、まっすぐな細い線は出さない＝光の輪の飾りにしない） */
+    const k = RM ? 1 : 1 - Math.exp(-dt * 4); xray += (xrayGoal - xray) * k; if (Math.abs(xray - xrayGoal) < .002) xray = xrayGoal;
+    scanY = 1.85 - xray * 1.95;
+    clipO.constant = scanY; clipG.constant = -scanY;
+    const on = xray > .001;
+    for (const [m, c] of ghosts) { c.visible = on; m.visible = xray < .999; }
+    ghostMat.userData.u.uOp.value = .25 + .75 * Math.min(1, xray * 1.4);
+    vrm.update(dt);
+    const pk = Math.max(0, (xray - .25) / .75);
+    for (const [id, P] of Object.entries(parts)) {
+      const s = !sel || sel === "end" ? 1 : sel === id ? 1.15 : .22;
+      for (const m of P.mats) m.opacity = Math.min(1, m.userData.base * s * pk);
+      const vis = pk > .001; P.g.visible = vis; if (P.g2) P.g2.visible = vis;
+    }
+    if (parts.foot?.rays) parts.foot.rays.material.opacity = sel === "foot" ? .45 * pk : 0;
+    if (parts.back) { /* 背中のしるしは、背中がこちらを向いているときだけ強く */
+      const f = Math.cos(yaw), w = f < -.2 ? 1 : .06; for (const m of parts.back.mats) m.opacity *= (sel === "back" ? 1 : w);
+    }
+    floorShadow.material.opacity = 1 - .6 * xray;
+    updateWires(t, pk);
+  }
+  renderer.render(scene, camera);
+  if (!window.__bp.first) { window.__bp.first = performance.now(); }
+}
+window.__bp = { ready: false, choose, setXray, goView, get state() { return { sel, xray, yaw, built }; } };
+goView("full", true);
+frame();
+loadAoi().catch(e => { console.warn("碧の姿を読み込めませんでした：", e?.message ?? e); const l = $("ld"); if (l) l.textContent = "姿を読み込めませんでした（文はそのまま読めます）"; window.__bp.fail = String(e?.message ?? e);
+  /* 姿がなくても、部品の文は読めるようにする */
+  built = true; });
+</script>
+</body>
+</html>
