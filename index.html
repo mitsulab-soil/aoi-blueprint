@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho:wght@500;600&display=swap">
 <link rel="preload" href="assets/aoi.vrm" as="fetch" type="model/gltf-binary" crossorigin>
 <script type="importmap">
 { "imports": {
@@ -48,6 +48,7 @@
   --serif:"Shippori Mincho","Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;
   --sans:"Inter","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",sans-serif;
   --latin:"Cormorant Garamond","Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -69,7 +70,9 @@ button{font:inherit;color:inherit}
 #poster{position:absolute;left:50%;top:0;height:100%;width:auto;transform:translateX(-50%);opacity:1;transition:opacity .6s ease;pointer-events:none;user-select:none}
 #poster.off{opacity:0}
 #head{position:absolute;left:16px;top:calc(12px + env(safe-area-inset-top,0px));z-index:3;pointer-events:none;max-width:70%}
-#head .eyebrow{font-family:var(--latin);font-style:italic;letter-spacing:.14em;color:var(--aoi);font-size:13px}
+#head .eyebrow{font-family:var(--mono);letter-spacing:.22em;color:var(--aoi);font-size:10.5px;text-transform:uppercase}
+#head .eyebrow .live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--aoi);margin-right:.7em;vertical-align:1px;box-shadow:0 0 8px var(--aoi);animation:blinkdot 2.4s ease-in-out infinite}
+@keyframes blinkdot{50%{opacity:.25}}
 #head h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.08em;line-height:1.35}
 #head h1 .yomi{font-family:var(--sans);font-size:11px;letter-spacing:.12em;color:var(--ink-3);margin-left:.6em;font-weight:400}
 #head .sub{font-size:12px;color:var(--ink-2);letter-spacing:.04em}
@@ -94,13 +97,13 @@ button{font:inherit;color:inherit}
 @media (min-width:900px){#chips{flex-wrap:wrap;margin:0;padding:0 0 14px;overflow:visible}}
 .chip{flex:0 0 auto;scroll-snap-align:start;border:1px solid var(--line-2);background:rgba(255,255,255,.02);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--ink-2);cursor:pointer;min-height:36px;letter-spacing:.03em}
 .chip[aria-pressed="true"]{border-color:var(--aoi);color:#fff;background:rgba(92,200,224,.14)}
-.chip .n{font-family:var(--latin);color:var(--aoi);margin-right:.35em;font-size:12px}
+.chip .n{font-family:var(--mono);color:var(--aoi);margin-right:.45em;font-size:10.5px;letter-spacing:.04em}
 
 #card{touch-action:pan-y}
 #card .ttl{display:flex;align-items:baseline;flex-wrap:wrap;gap:.2em .6em}
 #card h2{font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:.06em;line-height:1.4}
 #card .role{font-size:13px;color:var(--aoi-2);letter-spacing:.04em}
-#card .q{font-family:var(--latin);font-style:italic;font-size:13px;color:var(--ink-3);letter-spacing:.06em}
+#card .q{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);letter-spacing:.12em;text-transform:uppercase}
 .say{position:relative;margin:12px 0 12px;padding:11px 14px 11px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(92,200,224,.07);font-size:14px;line-height:1.85;color:var(--ink)}
 .say::before{content:"碧";position:absolute;left:12px;top:-9px;font-size:11px;padding:0 6px;background:#07101a;color:var(--aoi);letter-spacing:.1em;border-radius:4px}
 .row{display:grid;grid-template-columns:6.6em 1fr;gap:2px 10px;font-size:13px;line-height:1.75;padding:6px 0;border-top:1px solid var(--line-2)}
@@ -115,7 +118,7 @@ details.more[open] summary::before{content:"－ "}
 details.more .row:first-of-type{border-top:0}
 .lines{list-style:none;margin:4px 0 0;padding:0;font-size:13px}
 .lines li{padding:3px 0;color:var(--ink)}
-.lines li .ln{font-family:var(--latin);color:var(--aoi);margin-right:.6em}
+.lines li .ln{font-family:var(--mono);font-size:11px;color:var(--aoi);margin-right:.7em}
 .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .links a{display:inline-flex;align-items:center;gap:.3em;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;min-height:40px}
 .links a .arr{font-size:11px}
@@ -130,6 +133,40 @@ details.more .row:first-of-type{border-top:0}
 .nw{display:inline-block}
 @media (max-width:899px){body.x #head .sub{display:none}body.x #head h1{font-size:19px}body.x #head .eyebrow{font-size:11px}#panel{max-height:48dvh}}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+/* HUD（画面の上の計器の飾り）。数字は「画面の状態」と「典拠つきの目安」だけで、測った値は出さない */
+#stage canvas.screen{mix-blend-mode:screen}
+#hud{position:absolute;inset:0;pointer-events:none;z-index:2;font-family:var(--mono);opacity:0;transition:opacity .8s ease}
+#hud.on{opacity:1}
+#hud .cn{position:absolute;width:16px;height:16px;border:0 solid rgba(92,200,224,.5)}
+#hud .tl{left:7px;top:calc(7px + env(safe-area-inset-top,0px));border-left-width:1px;border-top-width:1px}
+#hud .tr{right:7px;top:calc(7px + env(safe-area-inset-top,0px));border-right-width:1px;border-top-width:1px}
+#hud .bl{left:7px;bottom:7px;border-left-width:1px;border-bottom-width:1px}
+#hud .br{right:7px;bottom:7px;border-right-width:1px;border-bottom-width:1px}
+#lead{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#lead polyline{fill:none;stroke:var(--aoi-2);stroke-width:1;opacity:.85}
+#lead circle{fill:none;stroke:var(--aoi-2);stroke-width:1}
+#lead .dot{fill:var(--aoi-2);stroke:none}
+#tag{position:absolute;left:0;top:0;max-width:min(240px,46%);padding:7px 10px 8px;border:1px solid rgba(92,200,224,.45);border-left:2px solid var(--aoi);border-radius:3px;background:rgba(3,9,17,.66);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);font-size:10.5px;line-height:1.55;color:var(--ink-2);letter-spacing:.03em;opacity:0;transition:opacity .35s ease}
+#tag.on{opacity:1}
+#tag b{display:block;color:var(--aoi-2);font-weight:500;letter-spacing:.14em;font-size:10px}
+#tag .nm{display:block;font-family:var(--sans);color:var(--ink);font-size:12.5px;letter-spacing:.04em;margin:1px 0 2px}
+#tag .ref{display:block;color:var(--ink-3);font-family:var(--sans);font-size:11px}
+#tag .ref::before{content:"REF ";font-family:var(--mono);font-size:9.5px;color:var(--aoi);letter-spacing:.12em}
+#marks{position:absolute;inset:0}
+.mk{position:absolute;left:0;top:0;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:1px solid rgba(155,220,240,.7);background:rgba(3,9,17,.55);color:var(--aoi-2);font:500 9px/20px var(--mono);text-align:center;letter-spacing:0;cursor:pointer;pointer-events:auto;padding:0;opacity:0;transition:opacity .4s ease,background .2s,border-color .2s;will-change:transform}
+.mk::after{content:"";position:absolute;inset:-9px}
+.mk.vis{opacity:.92}
+.mk.on{background:var(--aoi);color:#03111a;border-color:#fff;opacity:1}
+.mk.dim{opacity:.35}
+#tele{position:absolute;left:14px;bottom:12px;font-size:9.5px;letter-spacing:.12em;color:var(--ink-3);white-space:nowrap;text-transform:uppercase}
+#tele i{font-style:normal;color:var(--aoi-2)}
+#wbtn{position:absolute;right:14px;top:calc(54px + env(safe-area-inset-top,0px));z-index:3;border:1px solid var(--line-2);background:rgba(6,10,18,.55);border-radius:999px;padding:4px 12px;font:500 10.5px/1.6 var(--mono);letter-spacing:.12em;color:var(--ink-2);cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);min-height:30px}
+#wbtn[aria-pressed="true"]{border-color:var(--aoi);color:#fff;background:rgba(92,200,224,.16)}
+#wbtn[hidden]{display:none}
+@media (max-width:899px){#tag{font-size:10px;padding:6px 8px 7px}#tag .nm{font-size:12px}#tag .ref{font-size:10.5px}#hint{bottom:12px}}
+@media (prefers-reduced-motion:reduce){#hud,#tag,.mk{transition:none}#head .eyebrow .live{animation:none}}
+body.shot #wbtn,body.shot #tele{display:none}
+body.shot.poster #hud{display:none}
 body.shot #panel,body.shot #ld,body.shot #hint,body.shot #xbtn{display:none}
 body.shot #app{grid-template-columns:1fr;grid-template-rows:1fr}
 body.shot.nohead #head{display:none}
@@ -142,11 +179,19 @@ body.shot.hp{background:radial-gradient(900px 600px at 50% 0%,rgba(36,88,143,.26
   <div id="stage" aria-label="碧の 3D。ドラッグかスワイプで回せます。体を押すと、中が見えます。" role="img">
     <img id="poster" src="assets/poster.webp" alt="" width="720" height="1000" decoding="async" fetchpriority="high">
     <header id="head">
-      <div class="eyebrow">Aoi Blueprint</div>
+      <div class="eyebrow"><span class="live" aria-hidden="true"></span>Aoi · Blueprint</div>
       <h1>碧の設計図<span class="yomi">あおいのせっけいず</span></h1>
       <p class="sub">人と自然のあいだの通訳の、中身</p>
     </header>
+    <div id="hud" aria-hidden="true">
+      <i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>
+      <svg id="lead"><polyline points=""/><circle r="6"/><circle class="dot" r="1.8"/></svg>
+      <div id="marks"></div>
+      <div id="tag"></div>
+      <div id="tele"></div>
+    </div>
     <button id="xbtn" type="button" hidden>外から見る</button>
+    <button id="wbtn" type="button" hidden aria-pressed="false" title="体を線（ワイヤーフレーム）で重ねて見る">WIRE</button>
     <div id="ld">姿を読み込んでいます</div>
     <div id="hint">ドラッグで回す</div>
   </div>
@@ -155,7 +200,7 @@ body.shot.hp{background:radial-gradient(900px 600px at 50% 0%,rgba(36,88,143,.26
       <p class="lead">碧の中身は、<span class="nw">いまある技術の</span><span class="nw">組み合わせです。</span></p>
       <p>耳・目・足もと・胸・手・頭。それぞれが、人と自然をつなぐ働きを一つずつ持っています。体を押すと、中が見えます。</p>
       <button class="btn" id="go" type="button">中を見る <span aria-hidden="true">→</span></button>
-      <p class="note">中の部品は、碧の働きを体の場所に割りあてて描いた見取り図です。3D の碧の中に機械が入っているわけではありません。碧は、mitsulab が AI で動かしている案内役です。</p>
+      <p class="note">中の部品は、碧の働きを体の場所に割りあてて描いた見取り図です。3D の碧の中に機械が入っているわけではありません。碧は、mitsulab が AI で動かしている案内役です。画面の数字は、表示の状態（向き・描画のこま数）と、典拠つきの目安だけで、測った値ではありません。</p>
     </div>
     <div id="main" hidden>
       <nav id="chips" aria-label="部品"></nav>
@@ -182,49 +227,49 @@ const LINK = {
 };
 const LINES = ["断定しない", "典拠のない事実を作らない", "AI であることを隠さない", "生きものの気持ちを代弁しない・場所を診断しない"];
 const PARTS = [
-  { id: "ear", name: "耳の葉", role: "音のセンサー", q: "Phono-Qualia",
+  { id: "ear", code: "PHONO", ref: "人の可聴域 ≈ 20 Hz – 20 kHz（目安）", name: "耳の葉", role: "音のセンサー", q: "Phono-Qualia",
     tech: "マイクと振動のセンサー。人に聞こえない高い音は、ヘテロダイン（近い高さの信号を混ぜ、差の高さにする）や、ゆっくり再生することで、聞こえる高さへ下げる。",
     say: "人の耳に届く音は、およそ 20 Hz から 20 kHz とされます（高い側は年齢とともに下がります）。コウモリの多くは、それより高い声を出し、跳ね返りでまわりを知るとされます。高さを下げると、その声の並びが、わたしたちにも聞こえます。",
     keep: "音の時間の並び", change: "音の高さ（周波数を下げる）",
     cannot: "音で形をとらえる、という感じ方そのもの。土の中の音は機材しだいで、録れる帯が限られる（48 kHz で録る機材なら、原理上 24 kHz まで）。",
     sure: "●（超音波）／◐（土の中の音）", now: "いま：森羅百景で、公開の録音（CC）を聴ける。その場で録って高さを下げるのは、これから。",
     src: "可聴域は音響学の一般的な目安。録れる上限は標本化定理（標本化の周波数の半分）。", links: ["shinra"] },
-  { id: "eye", name: "目", role: "カメラと分光", q: "Photo-Qualia",
+  { id: "eye", code: "PHOTO", ref: "人の可視光 ≈ 400 – 700 nm（目安）", name: "目", role: "カメラと分光", q: "Photo-Qualia",
     tech: "紫外線を通すフィルターと、紫外線にも感じるカメラ。光を波長ごとに分け（分光）、人に見えない帯を、見える色に置きかえて描く（偽色）。",
     say: "人に見える光は、およそ 400〜700 nm とされます（数え方で 380〜780 nm とも）。ミツバチは紫外線も見るとされ、紫外線で撮ると、人には見えない模様が現れる花があります。",
     keep: "模様の位置", change: "波長を、人に見える色に置きかえる",
     cannot: "虫にどう見えているか、という主観。置きかえた色は、虫が見ている色ではない。",
     sure: "●", now: "これから（紫外線写真の使い方と利用条件を確かめているところ）。",
     src: "昆虫の色覚と、花の紫外線の模様は、感覚生理学で広く確かめられている。", links: [] },
-  { id: "foot", name: "足もと", role: "標高データと LiDAR", q: "Geo-Qualia",
+  { id: "foot", code: "GEO", ref: "DEM5A ・ 5 m メッシュ（国土地理院）", name: "足もと", role: "標高データと LiDAR", q: "Geo-Qualia",
     tech: "航空機から地面へレーザーを当て、跳ね返るまでの時間から高さを測る（LiDAR）。国土地理院は、それをもとに 5 m ごとの標高（DEM5A）を公開している。",
     say: "氷川参道の、一の鳥居からの 2 キロは、ほとんど平らです。境内の西の台地面は標高 14〜15 m、神池のあたりは 9〜12 m ほどで（読み方で幅があります）、小さな谷の低みにあるとみられます。高さを強調すると、歩くだけでは気づきにくい差が見えます。",
     keep: "高さの順", change: "高さを強調する（倍率は画面に出す）",
     cannot: "歩く体が感じる勾配の重さ。5 m より細かい起伏は丸まる。足もとの格子の起伏は模式で、強調してある。",
     sure: "●（数値は DEM5A を mitsulab が読んだもの・幅あり）", now: "いま：《Feel Hikawa》で、参道の高さを 3 倍にして見られる。",
     src: "国土地理院 基盤地図情報 数値標高モデル（5 m メッシュ・DEM5A）。", links: ["hikawa"] },
-  { id: "chest", name: "胸", role: "記録と典拠", q: "Bio-Qualia ／ Logo-Qualia",
+  { id: "chest", code: "BIO / LOGO", ref: "観察記録 ＋ 典拠の台帳", name: "胸", role: "記録と典拠", q: "Bio-Qualia ／ Logo-Qualia",
     tech: "市民科学の観察記録（iNaturalist：写真・日時・位置）と、古典の言葉の典拠の台帳。どこで、いつ、だれが見て、どう書いたかを、出どころつきで持つ。",
     say: "記録は、だれかがそこへ行って見た、というしるしです。たくさんの人の記録を重ねると、参道のまわりで、どんな生きものがどこで記録されてきたかが分かります。昔の人がその自然をどんな言葉で受けとめたかも、典拠ごと手渡せます。",
     keep: "記録の場所と日付・典拠", change: "点として地図に置く・景として編む",
     cannot: "記録されなかった生きもの（記録がない＝いない、ではない）。書き手の体験そのもの。",
     sure: "●", now: "いま：氷川重奏（写真は CC0・CC BY・CC BY-SA のものだけ）、森羅百景（典拠つき）。",
     src: "iNaturalist の観察記録。森羅百景の典拠の台帳。", links: ["ensemble", "shinra"] },
-  { id: "hand", name: "手", role: "土のデータ", q: "Pedo-Qualia",
+  { id: "hand", code: "PEDO", ref: "細菌 ≈ 10⁸ – 10¹⁰ ／ 土 1 g（目安）", name: "手", role: "土のデータ", q: "Pedo-Qualia",
     tech: "土から DNA を取り出して読み、どんな微生物のなかまがいるかを調べる（メタゲノム・アンプリコン解析）。食べる・食べられる・助け合うつながりは、網の目の模式（食物網）で描く。",
     say: "ひとつまみの土、1 g に、細菌が 1 億から 100 億ほどいるとされます。数え方で幅の大きい数です。その多くは、培養して育てるのが難しいとされています。",
     keep: "分類の階層", change: "量と関係を模式にする",
     cannot: "土の中の時間と化学の世界。DNA が読めても、その生きものがいま生きて働いているとは限らない。",
     sure: "◐（2 本の教材の数値は説明用の仮のデータで、測った値ではない）", now: "いま：土の微生物の顔ぶれ・土の中のつながり（どちらも学習用）。",
     src: "土壌微生物学の一般的な目安（土 1 g あたりの細菌はおよそ 10⁸〜10¹⁰）。", links: ["microbes", "web"] },
-  { id: "mind", name: "頭（ことば）", role: "言語モデル（AI）", q: "案内役",
+  { id: "mind", code: "LLM", ref: "会話は保存も学習もしない", name: "頭（ことば）", role: "言語モデル（AI）", q: "案内役",
     tech: "大規模言語モデル（AI）。典拠の台帳を見ながら、何をどの順で手渡すか、どんな言い方にするかを組み立てる。語りは、越えない線に照らして確かめてから出す。",
     say: "わたしは AI です。言語モデルは、もっともらしい間違いを作ることがあります。だから典拠のない事実は作らず、分からないことは分からないと言います。この画面のわたしの言葉は、あらかじめ書いて確かめた文です。",
     keep: "典拠と、確かさの印（● ◐ ○）", change: "手渡す順と、言い方",
     cannot: "感覚と気持ち。碧は見たり聴いたりして感じているのではなく、センサーとデータが写したものを、ことばで手渡している。",
     sure: "—", now: "いま：《Feel Hikawa》の公開版は、用意した問いから選んで碧と話す（どこにも送らない）。会話は保存せず、学習にも使わない。",
     src: "碧の越えない線（mitsulab 事業計画書 §9.1）。", lines: true, links: ["hikawa"] },
-  { id: "back", name: "背中のしるし", role: "mitsulab", q: "つくり手",
+  { id: "back", code: "MARK", ref: "機能なし（しるし）", name: "背中のしるし", role: "mitsulab", q: "つくり手",
     tech: "背中の Aoi の点は、ただのしるしで、機能はない。だれがつくり、だれが責任を持つかを示す。",
     say: "わたしは、mitsulab がつくり、AI で動かしている案内役です。わたしの語りは、mitsulab の編集者が読み、直しています。",
     keep: "", change: "", cannot: "しるしは、何も測らない。",
@@ -236,10 +281,13 @@ const END = { id: "end", name: "結び" };
 const $ = id => document.getElementById(id);
 const Q = new URLSearchParams(location.search), SHOT = Q.get("shot");   /* ?shot=poster ／ ?shot=hp（_dev/shots.py が静止画を撮るときだけ） */
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches || !!SHOT;
+/* 光のにじみ（UnrealBloomPass）は PC の幅だけ。スマホは加算の重ね描きで軽く光らせる（速さを優先） */
+const BLOOM = SHOT !== "poster" && matchMedia("(min-width:900px)").matches;
 if (SHOT) { document.body.classList.add("shot", SHOT); if (SHOT === "poster") document.body.classList.add("nohead"); $("poster").remove(); }
 performance.mark("bp-0");
 
 const stage = $("stage");
+let composer = null, bloom = null;   /* 光のにじみ（setupBloom で入れる） */
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance", preserveDrawingBuffer: !!SHOT });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
 renderer.setClearColor(0x000000, 0);
@@ -262,6 +310,20 @@ const floorShadow = (() => {                               /* 足もとの柔ら
   m.rotation.x = -Math.PI / 2; m.position.y = .002; return m;
 })();
 root.add(floorShadow);
+/* 床の格子：25 cm ごと・1 m ごとに太く。遠くへ行くほど薄れる（一枚の板に描く＝軽い） */
+const floorGrid = (() => {
+  const mat = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, uniforms: { uK: { value: 1 } },
+    vertexShader: "varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+    fragmentShader: `uniform float uK; varying vec2 vP;
+      float grid(vec2 p, float s){ vec2 g = abs(fract(p / s - 0.5) - 0.5) / fwidth(p / s); return 1.0 - min(min(g.x, g.y), 1.0); }
+      void main(){ float r = length(vP); float fade = 1.0 - smoothstep(0.6, 3.2, r);
+        float a = grid(vP, 0.25) * 0.07 + grid(vP, 1.0) * 0.16;
+        gl_FragColor = vec4(0.36, 0.78, 0.88, a * fade * uK); }`,
+  });
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), mat); m.rotation.x = -Math.PI / 2; m.position.y = .001; m.renderOrder = 1; return m;
+})();
+if (SHOT !== "poster") root.add(floorGrid);
 
 /* ---- 視点 ---- */
 const VIEWS = {
@@ -295,6 +357,7 @@ function placeCam(dt) {
 function resize() {
   const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;
   renderer.setSize(w, h, false); camera.aspect = w / h;
+  if (composer) { composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(w, h); }
   /* 横長の画面は高さで、縦長の画面は幅でも碧が切れないように画角を足す */
   const need = 28, fovW = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(need / 2)) * .62 / camera.aspect));
   camera.fov = Math.max(need, Math.min(46, fovW)); camera.updateProjectionMatrix();
@@ -317,20 +380,40 @@ stage.addEventListener("pointerup", endDrag); stage.addEventListener("pointercan
 function hideHint() { $("hint").style.opacity = 0; }
 
 /* ---- 碧の姿 ---- */
-let vrm = null, xray = 0, xrayGoal = 0, scanY = 2, ghosts = [], origMats = [], built = false;
+let vrm = null, xray = 0, xrayGoal = 0, scanY = 2, ghosts = [], wireClones = [], origMats = [], built = false, wireOn = false, introT = RM ? 9 : 0;
 const N = n => vrm.humanoid.getNormalizedBoneNode(n), RAW = n => vrm.humanoid.getRawBoneNode(n);
 const clipO = new THREE.Plane(new THREE.Vector3(0, -1, 0), 2), clipG = new THREE.Plane(new THREE.Vector3(0, 1, 0), -2);
 const depthMat = new THREE.MeshBasicMaterial({ colorWrite: false, clippingPlanes: [clipG], polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
+/* 世界座標の高さを fragment へ渡す（骨で動いたあとの位置） */
+const withWY = vs => vs.replace("void main() {", "varying float vWY;\nvoid main() {").replace("#include <project_vertex>", "#include <project_vertex>\n  vWY = (modelMatrix * vec4(transformed, 1.0)).y;");
+const HOLO = { uOp: { value: 0 }, uT: { value: 0 }, uMo: { value: RM ? 0 : 1 }, uScan: { value: 2 }, uBand: { value: 0 }, uWire: { value: 0 } };
+/* 線の写し（ワイヤーフレーム）：切り替わる高さのまわりだけ帯で光る＋「WIRE」で全身に薄く重ねる */
+const wireMat = (() => {
+  const m = new THREE.MeshBasicMaterial({ color: 0x5cc8e0, wireframe: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+  m.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, HOLO);
+    sh.vertexShader = withWY(sh.vertexShader);
+    sh.fragmentShader = sh.fragmentShader.replace("void main() {", "uniform float uScan, uBand, uWire;\nvarying float vWY;\nvoid main() {")
+      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n{ float d = vWY - uScan; float b = uBand * exp(-d * d * 70.0);\n  gl_FragColor = vec4(mix(diffuseColor.rgb, vec3(0.80,0.97,1.0), b), uWire * 0.20 + b * 0.85); }");
+  };
+  return m;
+})();
 const ghostMat = (() => {
   const m = new THREE.MeshNormalMaterial({ transparent: true, depthWrite: false, side: THREE.FrontSide, clippingPlanes: [clipG] });
-  m.userData.u = { uOp: { value: 0 } };
+  m.userData.u = HOLO;
   m.onBeforeCompile = sh => {
-    Object.assign(sh.uniforms, m.userData.u);
-    sh.fragmentShader = sh.fragmentShader.replace("void main() {", "uniform float uOp;\nvoid main() {")
+    Object.assign(sh.uniforms, HOLO);
+    sh.vertexShader = withWY(sh.vertexShader);
+    sh.fragmentShader = sh.fragmentShader.replace("void main() {", "uniform float uOp, uT, uMo;\nvarying float vWY;\nvoid main() {")
       .replace(/gl_FragColor\s*=\s*vec4\(\s*packNormalToRGB\(\s*normal\s*\),\s*diffuseColor\.a\s*\);/,
         "float f = pow(1.0 - abs(normalize(normal).z), 2.2);\n" +
-        "vec3 c = mix(vec3(0.05,0.16,0.24), vec3(0.62,0.90,0.97), f);\n" +
-        "gl_FragColor = vec4(c, uOp * (0.10 + 0.85 * f));");
+        /* 等高線（体の高さ 2.5 cm ごと）。地形の等高線と同じ描き方で、体を「測られたもの」として見せる */
+        "float cy = vWY * 40.0;\n" +
+        "float ctr = 1.0 - smoothstep(0.0, 1.0, abs(fract(cy) - 0.5) / max(fwidth(cy), 1e-4));\n" +
+        "float sl = 0.86 + 0.14 * sin(gl_FragCoord.y * 1.9);\n" +
+        "float fl = 1.0 - uMo * 0.035 * (0.5 + 0.5 * sin(uT * 23.0 + vWY * 3.0));\n" +
+        "vec3 c = mix(vec3(0.05,0.16,0.24), vec3(0.62,0.90,0.97), f) + vec3(0.10,0.30,0.38) * ctr * 0.55;\n" +
+        "gl_FragColor = vec4(c * sl * fl, uOp * (0.10 + 0.85 * f + 0.18 * ctr) * sl);");
   };
   return m;
 })();
@@ -354,6 +437,7 @@ function blink(dt) {
 const lookT = new THREE.Object3D(); scene.add(lookT);
 
 async function loadAoi() {
+  if (BLOOM) setupBloom().catch(e => console.warn("光のにじみは使わずに描きます：", e?.message ?? e));
   const [V, G, buf] = await Promise.all([
     import("@pixiv/three-vrm"), import("three/addons/loaders/GLTFLoader.js"),
     fetch("assets/aoi.vrm").then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.arrayBuffer(); }),
@@ -374,22 +458,35 @@ async function loadAoi() {
   /* 透ける体：同じ骨・同じ表情で動く写しを重ね、上から下へ切り替える */
   const meshes = []; v.scene.traverse(o => { if (o.isMesh) meshes.push(o); });
   for (const m of meshes) {
-    for (const mt of [].concat(m.material)) { mt.clippingPlanes = [clipO]; mt.clipping = true; origMats.push(mt); }
-    for (const [mat, ro] of [[depthMat, 4], [ghostMat, 5]]) {   /* 先に奥行きだけを書き、いちばん手前の面だけを透かす（髪の重なりが白く積もらない） */
+    for (const mt of [].concat(m.material)) { mt.clippingPlanes = [clipO]; mt.clipping = true; mt.polygonOffset = true; mt.polygonOffsetFactor = 1; mt.polygonOffsetUnits = 2; origMats.push(mt); }
+    for (const [mat, ro] of [[depthMat, 4], [ghostMat, 5], [wireMat, 6]]) {   /* 先に奥行きだけを書き、いちばん手前の面だけを透かす（髪の重なりが白く積もらない） */
       const c = m.clone(false); c.material = mat; c.renderOrder = ro;
       if (m.isSkinnedMesh) c.bind(m.skeleton, m.bindMatrix);
       if (m.morphTargetInfluences) { c.morphTargetInfluences = m.morphTargetInfluences; c.morphTargetDictionary = m.morphTargetDictionary; }
-      c.visible = false; m.parent.add(c); ghosts.push([m, c]);
+      c.visible = false; m.parent.add(c); (mat === wireMat ? wireClones : ghosts).push([m, c]);
     }
   }
   buildParts(v);
   performance.mark("bp-2-built");
   try { await Promise.race([renderer.compileAsync(scene, camera), new Promise(r => setTimeout(r, 2500))]); } catch {}
-  built = true;
+  built = true; buildMarks(); hud.classList.add("on");
   $("ld").remove();
   requestAnimationFrame(() => { const p = $("poster"); if (p) { p.classList.add("off"); setTimeout(() => p.remove(), 700); } });
   performance.mark("bp-3-shown");
   window.__bp.ready = true;
+}
+
+/* ---- 光のにじみ（PC のみ）。黒を下地に描いて、canvas を screen で重ねる（背景のグラデーションを活かす） ---- */
+async function setupBloom() {
+  const A = "three/addons/postprocessing/";
+  const [{ EffectComposer }, { RenderPass }, { UnrealBloomPass }, { OutputPass }] = await Promise.all(
+    ["EffectComposer", "RenderPass", "UnrealBloomPass", "OutputPass"].map(n => import(A + n + ".js")));
+  const c = new EffectComposer(renderer);
+  c.addPass(new RenderPass(scene, camera));
+  bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), .3, .5, .6); c.addPass(bloom);
+  c.addPass(new OutputPass());
+  renderer.setClearColor(0x000000, 1); renderer.domElement.classList.add("screen");
+  composer = c; resize();
 }
 
 /* ---- 中の部品（線画） ---- */
@@ -403,7 +500,7 @@ function dot() {
 }
 function kit(id) {
   const P = parts[id] = { g: new THREE.Group(), mats: [], anchors: [] }; P.g.name = id;
-  const reg = (m, base) => { m.transparent = true; m.depthWrite = false; if (id !== "foot") m.depthTest = false; m.userData.base = base; P.mats.push(m); m.opacity = 0; return m; };
+  const reg = (m, base) => { m.transparent = true; m.depthWrite = false; if (!m.isMeshBasicMaterial) m.blending = THREE.AdditiveBlending; if (id !== "foot") m.depthTest = false; m.userData.base = base; P.mats.push(m); m.opacity = 0; return m; };
   P.line = (pts, col = COL.aoi, base = .95, dashed) => {
     const geo = new THREE.BufferGeometry().setFromPoints(pts);
     const mat = reg(dashed ? new THREE.LineDashedMaterial({ color: col, dashSize: .006, gapSize: .005 }) : new THREE.LineBasicMaterial({ color: col }), base);
@@ -551,15 +648,18 @@ function buildParts(v) {
 }
 
 /* ---- 配線の光の線：各部品から背骨の束へ。上を光の粒が流れる（センサー → 頭） ---- */
-const wires = [];
+const wires = [], PU = 3, TR = 4, NP = PU * TR;   /* 光の粒の数と、尾の長さ */
 function buildWires() {
   const spineB = ["hips", "spine", "chest", "upperChest", "neck", "head"].map(RAW).filter(Boolean);
   const mk = (id, getPts, col = COL.aoi) => {
     const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(48 * 3), 3));
     const mat = new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0, depthWrite: false, depthTest: false }); mat.userData.base = .35;
     const line = new THREE.Line(geo, mat); line.frustumCulled = false; line.renderOrder = 8; scene.add(line);
-    const pm = new THREE.PointsMaterial({ color: COL.pale, size: 5, sizeAttenuation: false, map: dot(), transparent: true, opacity: 0, depthWrite: false, depthTest: false }); pm.userData.base = 1;
-    const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(new Float32Array(3 * 2), 3));
+    const pm = new THREE.PointsMaterial({ size: 5, sizeAttenuation: false, map: dot(), vertexColors: true, transparent: true, opacity: 0, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending }); pm.userData.base = 1;
+    const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(new Float32Array(3 * NP), 3));
+    const cl = new Float32Array(3 * NP), pc = new THREE.Color(COL.pale);
+    for (let i = 0; i < NP; i++) { const f = [1, .55, .3, .14][i % TR]; cl.set([pc.r * f, pc.g * f, pc.b * f], i * 3); }
+    pg.setAttribute("color", new THREE.BufferAttribute(cl, 3));
     const pulse = new THREE.Points(pg, pm); pulse.frustumCulled = false; pulse.renderOrder = 9; scene.add(pulse);
     wires.push({ id, getPts, line, pulse, mat, pm, ph: Math.random(), curve: null });
   };
@@ -581,8 +681,11 @@ function updateWires(t, k) {
     const a = w.line.geometry.attributes.position; for (let i = 0; i < 48; i++) { const p = curve.getPoint(i / 47); a.setXYZ(i, p.x, p.y, p.z); } a.needsUpdate = true;
     const on = sel ? (w.id === sel || (w.id === "bus" && sel !== "end")) : true;
     w.mat.opacity = k * w.mat.userData.base * (sel && !on ? .35 : on && sel && w.id !== "bus" ? 2.2 : 1);
-    const pa = w.pulse.geometry.attributes.position, u1 = RM ? .5 : (t * .32 + w.ph) % 1, u2 = (u1 + .5) % 1;
-    const q1 = curve.getPoint(u1), q2 = curve.getPoint(u2); pa.setXYZ(0, q1.x, q1.y, q1.z); pa.setXYZ(1, q2.x, q2.y, q2.z); pa.needsUpdate = true;
+    const pa = w.pulse.geometry.attributes.position, sp = w.id === "bus" ? .22 : .34;
+    for (let j = 0; j < PU; j++) for (let k = 0; k < TR; k++) {
+      const u = RM ? (j + .5) / PU : (((t * sp + w.ph + j / PU - k * .016) % 1) + 1) % 1, q = curve.getPoint(u); pa.setXYZ(j * TR + k, q.x, q.y, q.z);
+    }
+    pa.needsUpdate = true;
     w.pm.opacity = k * (on ? (w.id === "bus" ? .5 : 1) : .25);
   }
 }
@@ -599,18 +702,19 @@ function onTap(e) {
   if (h) choose(h.object.userData.id);
 }
 function setXray(on) {
-  xrayGoal = on ? 1 : 0; document.body.classList.toggle("x", on); $("xbtn").hidden = !on; $("intro").hidden = on; $("main").hidden = !on;
+  xrayGoal = on ? 1 : 0; document.body.classList.toggle("x", on); $("xbtn").hidden = !on; $("wbtn").hidden = !on; $("intro").hidden = on; $("main").hidden = !on;
   if (on) { if (!$("chips").children.length) renderChips(); if (!sel) overview(); } else { sel = null; goView("full"); }
 }
 $("go").onclick = () => { setXray(true); };
 function overview() {
-  sel = null; goView("full"); $("chips").querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", "false"));
+  sel = null; setTag(); goView("full"); $("chips").querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", "false"));
   $("card").innerHTML = `<div class="fade-in"><p class="say">中は、こうなっています。耳・目・頭・胸・手・足もと、そして背中。一つずつ、何を受けとり、何を移せないかを話しますね。</p>
     <p style="font-size:13px;color:var(--ink-2)">上の名前か、体の中の部品を押してください。左右にスワイプすると、次の部品へ進みます。</p>
     <div class="nav"><span></span><button type="button" data-step="1">はじめる ›</button></div></div>`;
   $("card").querySelector("[data-step]").onclick = () => choose(ORDER[0].id);
 }
 $("xbtn").onclick = () => { setXray(false); };
+$("wbtn").onclick = () => { wireOn = !wireOn; $("wbtn").setAttribute("aria-pressed", wireOn); };
 
 const ORDER = [...PARTS, END];
 function renderChips() {
@@ -623,7 +727,7 @@ const linesHtml = () => `<ol class="lines">${LINES.map((l, i) => `<li><span clas
 function choose(id) {
   if (xrayGoal < .5) setXray(true);
   if (!$("chips").children.length) renderChips();
-  sel = id; goView(id);
+  sel = id; goView(id); setTag();
   $("chips").querySelectorAll(".chip").forEach(b => { const on = b.dataset.id === id; b.setAttribute("aria-pressed", on); if (on) b.scrollIntoView({ block: "nearest", inline: "center", behavior: RM ? "auto" : "smooth" }); });
   const i = ORDER.findIndex(p => p.id === id), p = ORDER[i];
   const nav = `<div class="nav"><button type="button" data-step="-1" ${i === 0 ? "disabled" : ""}>‹ 前へ</button><button type="button" data-step="1">${i === ORDER.length - 1 ? "はじめから" : "次へ ›"}</button></div>`;
@@ -633,7 +737,7 @@ function choose(id) {
       <p>耳・目・足もと・胸・手で受けとった自然の側のものを、頭のことばで人へ手渡し、人の問いを自然の側へ運ぶ。特別な力はありません。あるのは、確かめられる技術と、その技術で移せないものを言うことです。</p>
       <div class="row" style="margin-top:10px"><span class="k">越えない線</span><span class="v">${linesHtml()}</span></div>
       ${linkHtml(["hikawa", "ensemble", "shinra", "microbes", "web", "hp"])}
-      <p class="note">中の部品は、碧の働きを体の場所に割りあてて描いた見取り図です。3D の碧の中に機械が入っているわけではありません。碧は、mitsulab が AI で動かしている案内役です。この画面には会話の欄がなく、何も送りません。</p></div>`;
+      <p class="note">中の部品は、碧の働きを体の場所に割りあてて描いた見取り図です。3D の碧の中に機械が入っているわけではありません。碧は、mitsulab が AI で動かしている案内役です。この画面には会話の欄がなく、何も送りません。画面の数字は、表示の状態と典拠つきの目安だけで、測った値ではありません。</p></div>`;
   } else {
     const rows = [];
     rows.push(`<div class="row"><span class="k">技術</span><span class="v">${esc(p.tech)}</span></div>`);
@@ -660,6 +764,57 @@ addEventListener("keydown", e => { if (!built || e.target.closest?.("input,texta
   c.addEventListener("touchstart", e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
   c.addEventListener("touchend", e => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null; if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx < 0 ? 1 : -1); }, { passive: true }); }
 
+/* ---- HUD：部品の番号の印・選んだ部品への引き出し線と札・画面の状態 ---- */
+const hud = $("hud"), tagEl = $("tag"), leadPl = $("lead").querySelector("polyline"), [leadC, leadD] = $("lead").querySelectorAll("circle");
+const mkEls = {};
+function buildMarks() {
+  $("marks").innerHTML = PARTS.map((p, i) => `<button class="mk" type="button" tabindex="-1" data-id="${p.id}">${String(i + 1).padStart(2, "0")}</button>`).join("");
+  $("marks").querySelectorAll(".mk").forEach(b => { mkEls[b.dataset.id] = b; b.onclick = () => choose(b.dataset.id); });
+}
+function setTag() {
+  const i = PARTS.findIndex(p => p.id === sel), p = PARTS[i];
+  if (!p) { tagEl.classList.remove("on"); return; }
+  tagEl.innerHTML = `<b>${String(i + 1).padStart(2, "0")} · ${esc(p.code)}</b><span class="nm">${esc(p.name)} ─ ${esc(p.role)}</span><span class="ref">${esc(p.ref)}</span>`;
+  tagEl.classList.add("on");
+}
+const _v = new THREE.Vector3();
+function toScreen(o, w, h) { o.getWorldPosition(_v).project(camera); return [(_v.x * .5 + .5) * w, (-_v.y * .5 + .5) * h, _v.z < 1]; }
+let fps = 60, teleT = 0;
+function updateHud(dt, pk) {
+  const w = stage.clientWidth, h = stage.clientHeight, show = pk > .6;
+  for (const p of PARTS) {
+    const el = mkEls[p.id]; if (!el) continue; const P = parts[p.id]; if (!P?.anchors[0]) continue;
+    const [x, y, ok] = toScreen(P.anchors[0], w, h);
+    const backHidden = p.id === "back" && Math.cos(yaw) > -.2 && sel !== "back";
+    const vis = show && ok && !backHidden && x > 8 && x < w - 8 && y > 8 && y < h - 8;
+    el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
+    el.classList.toggle("vis", vis); el.classList.toggle("on", vis && sel === p.id); el.classList.toggle("dim", vis && !!sel && sel !== "end" && sel !== p.id);
+    el.style.visibility = vis ? "visible" : "hidden";
+  }
+  const P = sel && parts[sel], on = show && P && P.anchors[0] && tagEl.classList.contains("on");
+  if (on) {
+    let [ax, ay] = toScreen(P.anchors[0], w, h);
+    const tw = tagEl.offsetWidth, th = tagEl.offsetHeight, right = ax >= w / 2, mob = w < 600;
+    const top = mob ? 104 : 120, ty = Math.max(top, Math.min(h - th - 34, ay + (ay < h * .5 ? 46 : -th - 46)));
+    const tx = right ? w - tw - 14 : 14;
+    tagEl.style.transform = `translate(${tx}px,${ty}px)`;
+    /* 引き出し線：印から札の縁のいちばん近い点へ。縁に沿って短く折る */
+    const ex = Math.max(tx, Math.min(tx + tw, ax)), ey = Math.max(ty, Math.min(ty + th, ay));
+    let pts;
+    if (ex > tx && ex < tx + tw) { const k = Math.max(tx + 8, Math.min(tx + tw - 8, ex)), y = ay < ty ? ty : ty + th; pts = [[ax, ay], [k, y], [k + (k < tx + tw / 2 ? 18 : -18), y]]; }
+    else { const x = ax < tx ? tx : tx + tw, y = Math.max(ty + 8, Math.min(ty + th - 8, ey)); pts = [[ax, ay], [x, y], [x, y + (y < ty + th / 2 ? 14 : -14)]]; }
+    leadPl.setAttribute("points", pts.map(q => q[0].toFixed(1) + "," + q[1].toFixed(1)).join(" "));
+    for (const c of [leadC, leadD]) { c.setAttribute("cx", ax.toFixed(1)); c.setAttribute("cy", ay.toFixed(1)); }
+    $("lead").style.opacity = 1; tagEl.style.visibility = "visible";
+  } else { $("lead").style.opacity = 0; tagEl.style.visibility = "hidden"; }
+  /* 画面の状態（測った値ではなく、この画面そのものの数字） */
+  fps += ((dt > 0 ? 1 / dt : 60) - fps) * .05; teleT -= dt;
+  if (teleT <= 0) { teleT = .25;
+    const deg = ((THREE.MathUtils.radToDeg(yaw) % 360) + 540) % 360 - 180;
+    $("tele").innerHTML = `MODE <i>${xray > .5 ? (wireOn ? "X-RAY+WIRE" : "X-RAY") : "SKIN"}</i> · VIEW <i>${deg >= 0 ? "+" : "−"}${String(Math.abs(Math.round(deg))).padStart(3, "0")}°</i> · <i>${Math.round(fps)}</i> FPS`;
+  }
+}
+
 /* ---- 毎こま ---- */
 const clock = new THREE.Clock();
 let last = 0;
@@ -676,7 +831,12 @@ function frame() {
     clipO.constant = scanY; clipG.constant = -scanY;
     const on = xray > .001;
     for (const [m, c] of ghosts) { c.visible = on; m.visible = xray < .999; }
-    ghostMat.userData.u.uOp.value = .25 + .75 * Math.min(1, xray * 1.4);
+    HOLO.uOp.value = .25 + .75 * Math.min(1, xray * 1.4); HOLO.uT.value = t;
+    /* 線の帯：はじめに一度、上から下へ体をなぞる（設計図 → 姿）。中を見る／外から見るの切り替えでも、切り替わる高さを帯でなぞる */
+    if (introT < 1 && built) { introT += dt / 1.9; const u = Math.min(1, introT); HOLO.uScan.value = 1.85 - u * 1.95; HOLO.uBand.value = Math.sin(Math.PI * u); }
+    else { HOLO.uScan.value = scanY; HOLO.uBand.value = RM ? 0 : Math.min(1, 4 * xray * (1 - xray) * 1.6); }
+    HOLO.uWire.value += ((wireOn && xray > .5 ? 1 : 0) - HOLO.uWire.value) * (RM ? 1 : 1 - Math.exp(-dt * 5));
+    const wv = HOLO.uBand.value > .01 || HOLO.uWire.value > .01; for (const [, c] of wireClones) c.visible = wv;
     vrm.update(dt);
     const pk = Math.max(0, (xray - .25) / .75);
     for (const [id, P] of Object.entries(parts)) {
@@ -689,9 +849,12 @@ function frame() {
       const f = Math.cos(yaw), w = f < -.2 ? 1 : .06; for (const m of parts.back.mats) m.opacity *= (sel === "back" ? 1 : w);
     }
     floorShadow.material.opacity = 1 - .6 * xray;
+    floorGrid.material.uniforms.uK.value = 1 - .65 * (sel === "foot" ? 1 : 0) * pk;
     updateWires(t, pk);
+    if (bloom) { bloom.strength = .18 + .4 * xray; bloom.threshold = .72 - .3 * xray; bloom.radius = .45; }
+    if (built) updateHud(dt, pk);
   }
-  renderer.render(scene, camera);
+  if (composer) composer.render(); else renderer.render(scene, camera);
   if (!window.__bp.first) { window.__bp.first = performance.now(); }
 }
 window.__bp = { ready: false, choose, setXray, goView, get state() { return { sel, xray, yaw, built }; } };
