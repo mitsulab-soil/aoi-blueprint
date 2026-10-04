@@ -337,6 +337,7 @@ const VIEWS = {
   back:  { t: [0, 1.25, 0], d: 1.6, e: .06, yaw: Math.PI },
   end:   { t: [0, .86, 0], d: 4.7, e: .06, yaw: 0 },
   hp:    { t: [-.36, 1.16, 0], d: 2.2, e: .1, yaw: .5 },
+  side:  { t: [0, .86, 0], d: 4.7, e: .06, yaw: Math.PI / 2 },   /* 確かめ用（腕の向きを横から） */
 };
 const cam = { t: new THREE.Vector3(0, .86, 0), d: 4.7, e: .06, yaw: 0, to: null };
 let yaw = 0, yawV = 0;   /* 碧の向き（ドラッグで回す） */
@@ -421,9 +422,10 @@ const ghostMat = (() => {
 function pose(t) {
   const br = RM ? 0 : Math.sin(t * 2 * Math.PI / 4.6);
   const set = (n, x, y, z) => { const b = N(n); if (b) b.rotation.set(x, y, z); };
-  set("leftUpperArm", .05, -.1, -1.3); set("rightUpperArm", .05, .1, 1.3);
-  set("leftLowerArm", 0, .62, 0); set("rightLowerArm", 0, -.62, 0);
-  set("leftHand", 0, 0, .12); set("rightHand", 0, 0, -.12);
+  // （腕の休め＝01_いま動いているもの/05_碧/02_碧の身体/aoi_pose.js の写し。前腕 Y は左が負・右が正＝肘が前へ曲がる）
+  set("leftUpperArm", -.12, 0, -1.28); set("rightUpperArm", -.12, 0, 1.28);
+  set("leftLowerArm", 0, -.28, 0); set("rightLowerArm", 0, .28, 0);
+  set("leftHand", 0, 0, 0); set("rightHand", 0, 0, 0);
   set("spine", -.006 * br, 0, 0); set("chest", -.012 * br, 0, 0); set("upperChest", -.01 * br, 0, 0);
   set("leftShoulder", 0, 0, .006 * br); set("rightShoulder", 0, 0, -.006 * br);
 }
