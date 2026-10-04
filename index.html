@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#03060f">
 <!--
   碧の設計図（2026-10-03 本人指示）── 碧の中身を 3D で知り、そこから人と自然の関係を紐解く。
-  ・碧の姿＝assets/aoi.vrm（白磁 案A・頭の飾り《耳の葉》つきを _dev/build_vrm.py で約 2 MB に軽くしたもの）。読み込むまでは assets/poster.webp（静止画）。
+  ・碧の姿＝assets/aoi.vrm（碧の現行デザイン・汀 磨き 3・頭の飾り《双葉の耳》つきを _dev/build_vrm.py で約 2 MB に軽くしたもの）。読み込むまでは assets/poster.webp（静止画）。
   ・中の部品は three.js の線画（板・センサー・配線の光の線）。位置は碧の骨（頭・胸・手・足）に合わせて付ける。光の輪の飾りは作らない。
   ・部品の文は PARTS の一か所。技術は実在のものだけ、限界（移せないもの）を必ず添える。数値は幅のまま、典拠つき。
   ・three@0.170.0 と @pixiv/three-vrm@3.5.5 は jsDelivr の版固定（《Feel Hikawa》と同じ組み合わせ）。
@@ -227,7 +227,7 @@ const LINK = {
 };
 const LINES = ["断定しない", "典拠のない事実を作らない", "AI であることを隠さない", "生きものの気持ちを代弁しない・場所を診断しない"];
 const PARTS = [
-  { id: "ear", code: "PHONO", ref: "人の可聴域 ≈ 20 Hz – 20 kHz（目安）", name: "耳の葉", role: "音のセンサー", q: "Phono-Qualia",
+  { id: "ear", code: "PHONO", ref: "人の可聴域 ≈ 20 Hz – 20 kHz（目安）", name: "双葉の耳", role: "音のセンサー", q: "Phono-Qualia",
     tech: "マイクと振動のセンサー。人に聞こえない高い音は、ヘテロダイン（近い高さの信号を混ぜ、差の高さにする）や、ゆっくり再生することで、聞こえる高さへ下げる。",
     say: "人の耳に届く音は、およそ 20 Hz から 20 kHz とされます（高い側は年齢とともに下がります）。コウモリの多くは、それより高い声を出し、跳ね返りでまわりを知るとされます。高さを下げると、その声の並びが、わたしたちにも聞こえます。",
     keep: "音の時間の並び", change: "音の高さ（周波数を下げる）",
@@ -535,7 +535,7 @@ function buildParts(v) {
   /* 目：lookAt の「頭の骨からの目の位置」 */
   const eyeOff = v.lookAt?.offsetFromHeadBone?.clone() ?? V3(0, .06, .02);
   const eyeC = hp.clone().add(eyeOff);
-  /* 頭の飾り《耳の葉》の左右の中心（実物の形から測る） */
+  /* 頭の飾り《双葉の耳》の左右の中心（実物の形から測る） */
   const hpBox = new THREE.Box3(); let hpMesh = null; v.scene.traverse(o => { if (o.isMesh && /Headpiece/i.test(o.name + (o.parent?.name ?? ""))) { hpMesh = o; } });
   let earL = V3(.078, eyeC.y + .045, eyeC.z - .05), earR = V3(-.078, eyeC.y + .045, eyeC.z - .05);
   if (hpMesh) {
@@ -545,7 +545,7 @@ function buildParts(v) {
   }
   const skull = V3(0, (earL.y + eyeC.y) / 2 + .01, (earL.z + eyeC.z) / 2 - .005);
 
-  /* 耳の葉：外から来る細かい波（人に聞こえない高い音）→ 葉 → 内へ、ゆるい波（聞こえる高さ）→ 小さな基板 */
+  /* 双葉の耳：外から来る細かい波（人に聞こえない高い音）→ 葉 → 内へ、ゆるい波（聞こえる高さ）→ 小さな基板 */
   { const P = kit("ear");
     for (const [E, s] of [[earL, 1], [earR, -1]]) {
       const wave = (x0, x1, cyc, amp, y) => { const pts = []; for (let i = 0; i <= 90; i++) { const u = i / 90; pts.push(V3(x0 + (x1 - x0) * u, y + Math.sin(u * cyc * Math.PI * 2) * amp * Math.sin(u * Math.PI), E.z)); } return pts; };
