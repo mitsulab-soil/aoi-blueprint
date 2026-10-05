@@ -630,7 +630,8 @@ async function loadAoi() {
   if (SHOT === "poster") { holo = holoGoal = 1; }
   else if (SHOT === "card") { setSense(true); goView("card", true); }
   else if (RM) { holo = holoGoal = 0; introDone = true; }
-  else { setTimeout(() => { tween(0, 2.4); }, 500); }
+  else if (state !== "skin") { introDone = true; holo = 1; holoGoal = 1; if (sel) choose(sel); else overview(); }   /* 読み込み中に「感じかたを見る」を押していたら、線の碧のまま */
+  else { setTimeout(() => { if (state === "skin") tween(0, 2.4); }, 500); }
   performance.mark("as-3-shown");
   window.__as.ready = true; kick(6);
 }
