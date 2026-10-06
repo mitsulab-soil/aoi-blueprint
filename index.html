@@ -109,6 +109,10 @@ button{font:inherit;color:inherit}
 .co .ref::before{content:"REF ";font-family:var(--mono);font-size:9.5px;color:var(--aoi);letter-spacing:.12em}
 .co.vis{opacity:1}
 .co.on{color:#fff;border-color:#fff}
+.co.on::before{background:rgba(3,10,17,.9)}
+.co.on .ref{color:var(--ink)}
+.co.face{white-space:normal;max-width:min(210px,calc(100vw - 24px))}
+.co.face .ref{max-width:none}
 .co.on .ref{display:block}
 .co.dim{opacity:.28}
 .co:focus-visible{outline:1px solid var(--aoi-2)}
@@ -119,6 +123,8 @@ button{font:inherit;color:inherit}
 .mk::after{content:"";position:absolute;inset:-10px}
 .mk.vis{opacity:.95}
 .mk.on{background:var(--aoi);color:#02111a;border-color:#fff}
+.mk.far{border-style:dashed;background:transparent;color:var(--ink-3)}
+.mk.far.vis{opacity:.7}
 #tele{position:absolute;left:16px;bottom:14px;font-size:9.5px;letter-spacing:.12em;color:var(--ink-3);white-space:nowrap;text-transform:uppercase}
 #tele i{font-style:normal;color:var(--aoi-2)}
 #scanpct{position:absolute;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translateX(-50%);font-size:9.5px;letter-spacing:.2em;color:var(--aoi-2);opacity:0;transition:opacity .4s;white-space:nowrap}
@@ -133,10 +139,12 @@ button{font:inherit;color:inherit}
 #head h1 .ja{display:block;font-family:var(--serif);font-weight:600;font-size:14px;letter-spacing:.2em;color:var(--aoi-2);margin-top:4px}
 #head .role{font-size:11.5px;color:var(--ink-2);letter-spacing:.05em;margin-top:8px;line-height:1.7}
 #head .role span{display:block}
+#head>*,#head h1 .ja,#head .role span{width:max-content;max-width:100%}
 
 /* 右上のボタン */
-#tools{position:fixed;right:18px;top:calc(18px + env(safe-area-inset-top,0px));z-index:4;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-.tb{border:1px solid var(--line);background:rgba(4,12,20,.55);border-radius:2px;padding:5px 12px;font:500 10.5px/1.6 var(--mono);letter-spacing:.14em;color:var(--aoi-2);cursor:pointer;min-height:32px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#tools{position:fixed;right:18px;top:calc(18px + env(safe-area-inset-top,0px));z-index:4;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.tb{border:1px solid var(--line);background:rgba(4,12,20,.55);border-radius:2px;padding:5px 12px;font:500 10.5px/1.6 var(--mono);letter-spacing:.14em;color:var(--aoi-2);cursor:pointer;min-height:32px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);position:relative}
+.tb::after{content:"";position:absolute;inset:-7px -4px}
 .tb:hover{border-color:var(--aoi);color:#fff}
 .tb[aria-pressed="true"]{border-color:var(--aoi);color:#fff;background:rgba(92,200,224,.16)}
 .tb[hidden]{display:none}
@@ -156,8 +164,10 @@ button{font:inherit;color:inherit}
 #panel .bar{display:flex;justify-content:space-between;align-items:center;padding:8px 14px 6px 16px;border-bottom:1px solid var(--line-2);font:500 9.5px/1.5 var(--mono);letter-spacing:.18em;color:var(--aoi)}
 #panel .bar i{font-style:normal;color:var(--ink-3)}
 #pbody{overflow-y:auto;overscroll-behavior:contain;padding:12px 18px 18px;flex:1;min-height:0}
-#chips{display:flex;flex-wrap:wrap;gap:5px;padding-bottom:12px}
-.chip{border:1px solid var(--line-2);background:rgba(255,255,255,.02);border-radius:2px;padding:4px 9px;font-size:12px;color:var(--ink-2);cursor:pointer;min-height:34px;letter-spacing:.03em}
+#chipw{position:relative}
+#chips{display:flex;flex-wrap:wrap;gap:12px 5px;padding:6px 0 12px}
+.chip{border:1px solid var(--line-2);background:rgba(255,255,255,.02);border-radius:2px;padding:4px 9px;font-size:12px;color:var(--ink-2);cursor:pointer;min-height:34px;letter-spacing:.03em;position:relative}
+.chip::after{content:"";position:absolute;inset:-6px -2px}
 .chip[aria-pressed="true"]{border-color:var(--aoi);color:#fff;background:rgba(92,200,224,.15)}
 .chip .n{font-family:var(--mono);color:var(--aoi);margin-right:.4em;font-size:10px}
 #card{touch-action:pan-y}
@@ -190,9 +200,9 @@ details.more .row:first-of-type{border-top:0}
 .lines li{padding:3px 0;color:var(--ink)}
 .lines li .ln{font-family:var(--mono);font-size:11px;color:var(--aoi);margin-right:.7em}
 .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.links a{display:inline-flex;align-items:center;gap:.3em;border:1px solid var(--line);padding:6px 12px;font-size:12.5px;min-height:40px}
+.links a{display:inline-flex;align-items:center;gap:.3em;border:1px solid var(--line);padding:6px 12px;font-size:12.5px;min-height:44px}
 .nav{display:flex;justify-content:space-between;margin-top:14px;gap:8px}
-.nav button{border:1px solid var(--line-2);background:transparent;padding:6px 14px;font-size:12px;color:var(--ink-2);cursor:pointer;min-height:40px}
+.nav button{border:1px solid var(--line-2);background:transparent;padding:6px 14px;font-size:12px;color:var(--ink-2);cursor:pointer;min-height:44px}
 .nav button:hover{border-color:var(--aoi);color:#fff}
 .nav button[disabled]{opacity:.35;cursor:default}
 .end .lead{font-family:var(--serif);font-size:19px;line-height:1.75;letter-spacing:.04em;margin:6px 0 10px}
@@ -202,10 +212,10 @@ details.more .row:first-of-type{border-top:0}
 
 /* クレジット（小さく） */
 #credits{position:fixed;right:18px;bottom:12px;z-index:3;font:400 9.5px/1.6 var(--mono);letter-spacing:.12em;color:var(--ink-3);text-align:right}
-#credits summary{cursor:pointer;list-style:none;text-transform:uppercase}
+#credits summary{cursor:pointer;list-style:none;text-transform:uppercase;padding:15px 12px;margin:-15px -12px}
 #credits summary::-webkit-details-marker{display:none}
 #credits[open] summary{color:var(--aoi-2)}
-#credits div{position:absolute;right:0;bottom:22px;width:min(360px,calc(100vw - 36px));padding:12px 14px;background:rgba(4,12,20,.92);border:1px solid var(--line-2);font-family:var(--sans);font-size:11.5px;line-height:1.75;letter-spacing:.02em;color:var(--ink-2);text-align:left;text-transform:none}
+#credits div{position:absolute;right:0;bottom:26px;width:min(360px,calc(100vw - 36px));padding:12px 14px;background:rgba(4,12,20,.92);border:1px solid var(--line-2);font-family:var(--sans);font-size:11.5px;line-height:1.75;letter-spacing:.02em;color:var(--ink-2);text-align:left;text-transform:none}
 #ld{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);font:400 10.5px/1.6 var(--mono);letter-spacing:.2em;color:var(--aoi-2);z-index:2;white-space:nowrap;text-transform:uppercase}
 
 /* スマホ */
@@ -221,9 +231,11 @@ details.more .row:first-of-type{border-top:0}
   #panel{left:0;right:0;top:auto;bottom:0;width:auto;max-height:46dvh;border-left:0;border-right:0;border-bottom:0;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)}
   #panel.off{transform:translateY(16px)}
   #pbody{padding:10px 16px calc(14px + env(safe-area-inset-bottom,0px))}
-  #chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 10px}
+  #chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:6px 16px 10px;scroll-padding:0 40px}
   #chips::-webkit-scrollbar{display:none}
   .chip{flex:0 0 auto}
+  #chipw::after{content:"›";position:absolute;right:-16px;top:0;bottom:10px;width:46px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font:500 18px/1 var(--mono);color:var(--aoi-2);background:linear-gradient(90deg,rgba(4,12,20,0),rgba(4,12,20,.92) 60%);pointer-events:none;transition:opacity .3s}
+  #chipw.end::after{opacity:0}
   body.sense #head .role{display:none}
   body.sense #credits,body.sense #tele{display:none}
   .co{padding:3px 6px 4px;font-size:9.5px}
@@ -234,7 +246,7 @@ details.more .row:first-of-type{border-top:0}
   .nl{font-size:8.5px}
   .nl i{font-size:11px}
   #tele{left:14px;bottom:12px}
-  #scanpct{left:16px;transform:none;top:calc(100px + env(safe-area-inset-top,0px))}
+  #scanpct{left:16px;transform:none;top:var(--scanTop,calc(132px + env(safe-area-inset-top,0px)))}
   #credits{right:14px;bottom:10px}
 }
 @media (prefers-reduced-motion:reduce){
@@ -277,7 +289,7 @@ body.shot.poster{background:transparent}
 <aside id="panel" class="off" aria-live="polite">
   <div class="bar"><span id="pcode">SENSE · 00</span><i>AOI SENSE</i></div>
   <div id="pbody">
-    <nav id="chips" aria-label="部位"></nav>
+    <div id="chipw"><nav id="chips" aria-label="部位"></nav></div>
     <div id="card"></div>
   </div>
 </aside>
@@ -339,7 +351,7 @@ const PARTS = [
     src: "昆虫の色覚と、花の紫外線の模様は、感覚生理学で広く確かめられている。", links: [] },
   { id: "foot", code: "GEO", does: "地形を読む", act: "歩くだけでは気づきにくい土地の高さの差を、強調して見せる。", nat: ["stone", "water"],
     ref: "DEM5A ・ 5 m メッシュ（国土地理院）", name: "足もと", role: "標高データと LiDAR", q: "Geo-Qualia",
-    tech: "航空機から地面へレーザーを当て、跳ね返るまでの時間から高さを測る（LiDAR）。国土地理院は、それをもとに 5 m ごとの標高（DEM5A）を公開している。",
+    tech: "航空機から地面へレーザーを当て、跳ね返るまでの時間から、地面までの距離を測る（航空レーザ測量・LiDAR）。その距離を、機体の位置（GNSS）と傾き（IMU）と合わせて、地面の標高にする。国土地理院は、それをもとに 5 m ごとの標高（DEM5A）を公開している。",
     say: "氷川参道の、一の鳥居からの 2 キロは、ほとんど平らです。境内の西の台地面は標高 14〜15 m、神池のあたりは 9〜12 m ほどで（読み方で幅があります）、小さな谷の低みにあるとみられます。高さを強調すると、歩くだけでは気づきにくい差が見えます。",
     keep: "高さの順", change: "高さを強調する（倍率は画面に出す）",
     cannot: "歩く体が感じる勾配の重さ。5 m より細かい起伏は丸まる。足もとの格子の起伏は模式で、強調してある。",
@@ -486,7 +498,7 @@ if (SHOT !== "poster") scene.add(streams);
 const VIEWS = {
   full:  { t: [0, .9, 0], d: 4.9, e: .06 },
   ear:   { t: [0, 1.53, 0], d: 1.1, e: .06, yaw: .55 },
-  eye:   { t: [0, 1.52, 0], d: 1.0, e: .04, yaw: .35 },
+  eye:   { t: [0, 1.52, 0], d: 1.0, e: .1, yaw: -.2 },   /* 前髪のすき間から額が大きくのぞかない向き（2026-10-06） */
   mind:  { t: [0, 1.53, 0], d: 1.1, e: .1, yaw: -.3 },
   chest: { t: [0, 1.36, 0], d: 1.5, e: .06, yaw: -.25 },
   hand:  { t: [0, .98, 0], d: 1.9, e: .22, yaw: .3 },
@@ -497,11 +509,14 @@ const VIEWS = {
   side:  { t: [0, .9, 0], d: 4.9, e: .06, yaw: Math.PI / 2 },   /* 確かめ用（腕の向きを横から） */
 };
 const cam = { t: V3(0, .9, 0), d: 4.9, e: .06, to: null };
+const FACE = new Set(["ear", "eye", "mind"]), FACE_NARROW = 1.35;
 let yaw = -.35, yawV = 0, yawGoal = null;
 const par = { x: 0, y: 0, gx: 0, gy: 0 };                     /* 視差（ポインタ・端末の傾き） */
 const off = { x: 0, y: 0, gx: 0, gy: 0 };                     /* 札で隠れる分だけ、碧を画面の空いた側へ寄せる */
 function goView(name, now) {
-  const v = VIEWS[name]; cam.to = { t: V3(...v.t), d: v.d, e: v.e };
+  const v = VIEWS[name], narrow = innerWidth < 700 && innerWidth < innerHeight;
+  const nf = narrow && FACE.has(name);   /* 縦長の小さい画面の顔の寄り：少し引いて、頭を少し下げる（上の帯に札を置く） */
+  cam.to = { t: V3(v.t[0], v.t[1] + (nf ? .04 : 0), v.t[2]), d: v.d * (nf ? FACE_NARROW : 1), e: v.e };
   if (v.yaw != null) yawGoal = v.yaw;
   if (now || RM) { cam.t.copy(cam.to.t); cam.d = cam.to.d; cam.e = cam.to.e; if (v.yaw != null) { yaw = v.yaw; yawGoal = null; } }
   kick();
@@ -535,7 +550,7 @@ function resize() {
   const need = 28, halfW = MOBILE || W < H ? .78 : .95;
   const fovW = THREE.MathUtils.radToDeg(2 * Math.atan(halfW / 4.9 / camera.aspect));
   camera.fov = Math.max(need, Math.min(52, fovW)); camera.updateProjectionMatrix();
-  layout(); if (built) measure(); kick();
+  layout(); if (built) measure(); if ($("chips").children.length) chipEnd(); kick();
 }
 addEventListener("resize", resize);
 
@@ -561,7 +576,7 @@ const RAW = n => vrm.humanoid.getRawBoneNode(n), N = n => vrm.humanoid.getNormal
 const clipO = new THREE.Plane(V3(0, -1, 0), 2), clipG = new THREE.Plane(V3(0, 1, 0), -2);
 /* 顔の寄り（01 聴く・02 見る・06 ことば）では、首から上を色のある碧に戻す：色の碧＝走査の下 または 首より上、線の碧＝そのあいだ */
 const clipF = new THREE.Plane(V3(0, 1, 0), -9), clipGF = new THREE.Plane(V3(0, -1, 0), 9);
-const FACE = new Set(["ear", "eye", "mind"]); let face = 0, NECK_Y = 1.4;
+let face = 0, NECK_Y = 1.4;
 const depthMat = new THREE.MeshBasicMaterial({ colorWrite: false, clippingPlanes: [clipG, clipGF], polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
 const withWY = vs => vs.replace("void main() {", "varying float vWY;\nvoid main() {").replace("#include <project_vertex>", "#include <project_vertex>\n  vWY = (modelMatrix * vec4(transformed, 1.0)).y;");
 const HOLO = { uOp: { value: 0 }, uT: { value: 0 }, uMo: { value: RM ? 0 : 1 }, uScan: { value: 2 }, uBand: { value: 0 }, uWire: { value: 0 }, uFaceY: { value: 9 } };
@@ -665,6 +680,7 @@ async function loadAoi() {
 
 /* ---- 中の部品（線画）。碧の骨に付ける ---- */
 const parts = {};
+let HEADC = null;
 function kit(id) {
   const P = parts[id] = { g: new THREE.Group(), mats: [], anchors: [] }; P.g.name = id;
   const reg = (m, base) => { m.transparent = true; m.depthWrite = false; if (!m.isMeshBasicMaterial) m.blending = THREE.AdditiveBlending; if (id !== "foot") m.depthTest = false; m.userData.base = base; P.mats.push(m); m.opacity = 0; return m; };
@@ -707,6 +723,7 @@ function buildParts(v) {
     if (!L.isEmpty()) earL = L.getCenter(new THREE.Vector3()); if (!R.isEmpty()) earR = R.getCenter(new THREE.Vector3());
   }
   const skull = V3(0, (earL.y + eyeC.y) / 2 + .01, (earL.z + eyeC.z) / 2 - .005);
+  { const o = new THREE.Object3D(); o.position.copy(skull); root.add(o); root.updateMatrixWorld(true); head.attach(o); HEADC = o; }
   /* 双葉の耳：外から来る細かい波（人に聞こえない高い音）→ 葉 → 内へ、ゆるい波（聞こえる高さ）→ 小さな基板 */
   { const P = kit("ear");
     for (const [E, s] of [[earL, 1], [earR, -1]]) {
@@ -933,7 +950,9 @@ const linesHtml = () => `<ol class="lines">${LINES.map((l, i) => `<li><span clas
 function renderChips() {
   $("chips").innerHTML = ORDER.map((p, i) => `<button class="chip" type="button" data-id="${p.id}" aria-pressed="false"><span class="n">${i < PARTS.length ? String(i + 1).padStart(2, "0") : "—"}</span>${p.does ? esc(p.does) : esc(p.name)}${p.yet ? `<span class="yt">${p.yet === "これから" ? "これから" : "一部"}</span>` : ""}</button>`).join("");
   $("chips").querySelectorAll(".chip").forEach(b => b.onclick = () => choose(b.dataset.id));
+  $("chips").addEventListener("scroll", chipEnd, { passive: true }); chipEnd();
 }
+function chipEnd() { const c = $("chips"); $("chipw").classList.toggle("end", c.scrollLeft + c.clientWidth >= c.scrollWidth - 6); }
 function overview() {
   sel = null; state = "sense"; goView("full"); setCallouts(); $("pcode").textContent = "SENSE · OVERVIEW";
   $("chips").querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", "false"));
@@ -1008,10 +1027,19 @@ function buildCallouts() {
   measure(); document.fonts?.ready.then(measure);
   const c1 = document.createElementNS(SVGNS, "circle"); c1.setAttribute("r", 7); const c2 = document.createElementNS(SVGNS, "circle"); c2.setAttribute("r", 2); c2.setAttribute("class", "d"); svg.append(c1, c2); svg.ring = [c1, c2];
 }
-function setCallouts() { for (const p of PARTS) { const el = coEl[p.id]; if (!el) continue; el.classList.toggle("on", sel === p.id); } measure(); }
+function setCallouts() { for (const p of PARTS) { const el = coEl[p.id]; if (!el) continue; el.classList.toggle("on", sel === p.id); el.classList.toggle("face", sel === p.id && FACE.has(p.id)); } measure(); }
 /* 札の大きさは、中身が変わったときだけ測る（毎こま測ると重い） */
-function measure() { for (const el of [...Object.values(coEl), ...Object.values(nlEl)]) { el._w = el.offsetWidth; el._h = el.offsetHeight; } headB = $("head").getBoundingClientRect().bottom + 10; }
-let headB = 140;
+function measure() {
+  for (const el of [...Object.values(coEl), ...Object.values(nlEl)]) { el._w = el.offsetWidth; el._h = el.offsetHeight; }
+  headB = $("head").getBoundingClientRect().bottom + 10;
+  headR = Math.max(0, ...[...$("head").children].map(e => e.getBoundingClientRect()).filter(r => r.width).map(r => r.right));
+  const tb = [...$("tools").children].filter(e => !e.hidden).map(e => e.getBoundingClientRect());
+  toolsL = tb.length ? Math.min(...tb.map(r => r.left)) : innerWidth; toolsB = tb.length ? Math.max(...tb.map(r => r.bottom)) + 10 : 0;
+  $("scanpct").style.setProperty("--scanTop", headB + "px");
+}
+let headB = 140, headR = 200, toolsL = 9999, toolsB = 0;
+/* 見出し・右上のボタンの範囲にかかる印は出さない（寄りで体の印が見出しに乗らないように） */
+const underUi = (x, y) => (x < headR + 18 && y < headB + 8) || (x > toolsL - 18 && y < toolsB + 8);
 const _v = new THREE.Vector3();
 function toScreen(o, W, H) { o.getWorldPosition(_v).project(camera); return [(_v.x * .5 + .5) * W, (-_v.y * .5 + .5) * H, _v.z < 1]; }
 let coK = 0;
@@ -1022,17 +1050,28 @@ function updateHud(dt) {
   /* 体の中心と、1 m あたりの画素 */
   _v.set(0, 1, 0).applyMatrix4(root.matrixWorld).project(camera); const cx = (_v.x * .5 + .5) * W;
   const _w = V3(.5, 1, 0).applyMatrix4(root.matrixWorld).project(camera); const ppm = Math.abs((_w.x - _v.x) * .5 * W) * 2 || 200;
-  const items = { "-1": [], "1": [] }, rects = [];
+  const items = { "-1": [], "1": [] }, rects = [], mks = [];
   for (const p of PARTS) {
     const P = parts[p.id]; if (!P?.anchors[0]) continue;
     const [x, y, ok] = toScreen(P.anchors[0], W, H);
-    const backHidden = p.id === "back" && Math.cos(yaw) > -.2 && sel !== "back";
-    const inView = ok && x > 4 && x < W - 4 && y > 4 && y < H - 4;
-    const vis = show && inView && !backHidden && (!sel || sel === "end" || sel === p.id);
-    const mk = mkEl[p.id]; mk.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`; mk.classList.toggle("vis", show && inView && !backHidden && holo > .5); mk.classList.toggle("on", sel === p.id);
-    mk.style.visibility = show && inView && !backHidden && holo > .5 ? "visible" : "hidden";
-    items[SIDE[p.id]].push({ p, x, y, vis });
+    /* 体の裏にあるか：印までの距離が、同じ高さの体の軸までの距離より遠い */
+    P.anchors[0].getWorldPosition(_a); _b.set(0, 0, 0).applyMatrix4(root.matrixWorld); _b.y = _a.y;
+    const far = camera.position.distanceTo(_a) > camera.position.distanceTo(_b) + .04;
+    const inView = ok && x > 4 && x < W - 4 && y > 4 && y < H - 4 && !underUi(x, y);
+    mks.push({ p, x, y, far, ok: show && inView && holo > .5 });
+    items[SIDE[p.id]].push({ p, x, y, vis: show && inView && (!sel || sel === "end" || sel === p.id) });
   }
+  /* 裏にある印が、手前の印と重なるときは出さない（重ならなければ点線の輪で出す） */
+  for (const m of mks) if (m.far && m.p.id !== sel && mks.some(n => n !== m && !n.far && n.ok && Math.hypot(n.x - m.x, n.y - m.y) < 30)) m.ok = false;
+  for (const m of mks) {
+    const mk = mkEl[m.p.id]; mk.style.transform = `translate(${m.x.toFixed(1)}px,${m.y.toFixed(1)}px)`;
+    mk.classList.toggle("vis", m.ok); mk.classList.toggle("on", sel === m.p.id); mk.classList.toggle("far", m.far && sel !== m.p.id);
+    mk.style.visibility = m.ok ? "visible" : "hidden";
+    if (m.p.id === "back") for (const it of items[SIDE.back]) if (it.p.id === "back" && m.far && sel !== "back") it.vis = false;
+  }
+  /* 頭の中心と半径（顔の寄りで、札を頭の外へ逃がす） */
+  let hx = W / 2, hr = 0;
+  if (HEADC) { HEADC.getWorldPosition(_a); _b.setFromMatrixColumn(camera.matrixWorld, 0); const a = _a.clone().project(camera), b = _a.addScaledVector(_b, .14).project(camera); hx = (a.x * .5 + .5) * W; hr = Math.abs(b.x - a.x) * .5 * W; }
   const half = Math.min(.42 * ppm + (mob ? 26 : 56), W * .5 - 20);
   /* 札で隠れない範囲（PC は右の札の手前まで、スマホは下の札の上まで） */
   const open = state !== "skin" && !SHOT, pn = $("panel");
@@ -1045,20 +1084,35 @@ function updateHud(dt) {
       let ly = Math.max(it.y - eh / 2, lastY + gap, headB);
       ly = Math.min(ly, FB - eh); lastY = ly + eh;
       let lx = s < 0 ? cx - half - ew : cx + half;
-      if (sel === it.p.id) {   /* 選んだ部位：印から少し離れた、空いた側へ */
+      let d = null;
+      if (sel === it.p.id && FACE.has(sel) && hr > 0) {   /* 顔の寄り：札は頭の外へ。線は印から外へ水平に出て、目の上を横切らない */
+        const out = it.x >= hx ? 1 : -1, gapH = 22, y0 = it.y + (sel === "eye" ? Math.max(22, hr * .2) : 0);   /* 目の印は、いったん頬の高さへ下りてから外へ */
+        const room = q => q > 0 ? FR - (hx + hr + gapH) : (hx - hr - gapH) - 10;
+        const side = room(out) >= Math.min(ew, 150) ? out : room(-out) >= ew ? -out : 0;   /* 外側を優先（髪の端に少しかかるのはよい） */
+        if (side) {
+          lx = side > 0 ? hx + hr + gapH : hx - hr - gapH - ew; ly = Math.max(headB, Math.min(it.y - eh / 2, FB - eh));
+          const ex = side > 0 ? lx : lx + ew, ey = ly + eh / 2, kx = ex - side * 12;
+          d = side === out ? `M${it.x.toFixed(1)},${it.y.toFixed(1)} L${it.x.toFixed(1)},${y0.toFixed(1)} L${kx.toFixed(1)},${y0.toFixed(1)} L${kx.toFixed(1)},${ey.toFixed(1)} L${ex.toFixed(1)},${ey.toFixed(1)}`
+                           : `M${it.x.toFixed(1)},${it.y.toFixed(1)} L${it.x.toFixed(1)},${(ly - 8).toFixed(1)} L${kx.toFixed(1)},${(ly - 8).toFixed(1)} L${kx.toFixed(1)},${ey.toFixed(1)} L${ex.toFixed(1)},${ey.toFixed(1)}`;
+        } else {   /* 頭の横に場所がない（スマホ）：見出しの下（左）か、ボタンの下（右）の帯へ。線は外へ出てから上がる */
+          lx = out > 0 ? FR - ew : 10; ly = out > 0 ? Math.max(toolsB, headB - 10) : headB;
+          const kx = out > 0 ? lx + ew - 10 : lx + 10;
+          d = `M${it.x.toFixed(1)},${it.y.toFixed(1)} L${it.x.toFixed(1)},${y0.toFixed(1)} L${kx.toFixed(1)},${y0.toFixed(1)} L${kx.toFixed(1)},${(ly + eh).toFixed(1)}`;
+        }
+      } else if (sel === it.p.id) {   /* 選んだ部位：印から少し離れた、空いた側へ */
         lx = it.x + 56; if (lx + ew > FR) lx = it.x - 56 - ew;
         ly = it.y - eh - 44; if (ly < headB) ly = it.y + 44; ly = Math.min(ly, FB - eh);
       }
       lx = Math.max(10, Math.min(FR - ew, lx));
       el.style.transform = `translate(${lx.toFixed(1)}px,${ly.toFixed(1)}px)`; rects.push([lx, ly, ew, eh]);
       const ex = s < 0 ? lx + ew : lx, ey = ly + eh / 2, kx = ex + (s < 0 ? 14 : -14);
-      pathEl[it.p.id].setAttribute("d", `M${it.x.toFixed(1)},${it.y.toFixed(1)} L${kx.toFixed(1)},${ey.toFixed(1)} L${ex.toFixed(1)},${ey.toFixed(1)}`);
+      pathEl[it.p.id].setAttribute("d", d ?? `M${it.x.toFixed(1)},${it.y.toFixed(1)} L${kx.toFixed(1)},${ey.toFixed(1)} L${ex.toFixed(1)},${ey.toFixed(1)}`);
     }
     for (const it of items[s]) { const vis = it.vis; coEl[it.p.id].classList.toggle("vis", vis); coEl[it.p.id].style.visibility = vis ? "visible" : "hidden"; pathEl[it.p.id].style.display = vis ? "" : "none"; pathEl[it.p.id].setAttribute("class", sel === it.p.id ? "on" : ""); }
   }
   /* 選んだ部位の印に輪 */
   const P = sel && parts[sel], [c1, c2] = svg.ring;
-  if (P?.anchors[0] && show) { const [x, y] = toScreen(P.anchors[0], W, H); for (const c of [c1, c2]) { c.setAttribute("cx", x.toFixed(1)); c.setAttribute("cy", y.toFixed(1)); c.style.display = ""; } }
+  if (P?.anchors[0] && show && mkEl[sel]?.style.visibility === "visible") { const [x, y] = toScreen(P.anchors[0], W, H); for (const c of [c1, c2]) { c.setAttribute("cx", x.toFixed(1)); c.setAttribute("cy", y.toFixed(1)); c.style.display = ""; } }
   else for (const c of [c1, c2]) c.style.display = "none";
   /* 自然の名 */
   for (const n of NATURE) {
@@ -1161,7 +1215,7 @@ function frame() {
   if (!window.__as.first) window.__as.first = performance.now();
 }
 document.addEventListener("visibilitychange", () => { if (document.hidden) { cancelAnimationFrame(raf); raf = 0; } else kick(4); });   /* 隠れたら止める */
-window.__as = { ready: false, choose, setSense, goView, overview, get vrm() { return vrm; }, get state() { return { state, sel, holo, yaw, built, pr: renderer.getPixelRatio() }; } };
+window.__as = { ready: false, VIEWS, choose, setSense, goView, overview, get vrm() { return vrm; }, get programs() { return renderer.info.programs?.length ?? 0; }, get state() { return { state, sel, holo, yaw, built, pr: renderer.getPixelRatio() }; } };
 window.__bp = window.__as;   /* 旧い確かめの道具のため */
 resize(); goView("full", true); off.x = off.gx; off.y = off.gy;   /* はじめは寄せた位置から（静止画と 3D をそろえる） */
 kick(4);
