@@ -22,7 +22,7 @@
   ・体の中の線・まわりの木や水の図・光の線は模式（見取り図）。測った値ではない。
   ・速さ：描く解像度に上限（画素比 1.5・総画素 240 万）＋重いときは下げる／隠れたら止める／reduced-motion は止まった一枚（全部見える）。
   ・three@0.170.0 と @pixiv/three-vrm@3.5.5 は jsDelivr の版固定。
-  ・碧の越えない線：断定しない／典拠のない事実を作らない／AI であることを隠さない／生きものの気持ちを代弁しない・場所を診断しない。会話はない（保存も学習もしない）。
+  ・碧の越えない線（画面に出す分）：断定しない／典拠のない事実を作らない／生きものの気持ちを代弁しない・場所を診断しない。断り書き（「AI で動いている」など）は書かない（2026-10-06 本人指示）。会話はない（保存も学習もしない）。
 -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2302060c'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%235cc8e0' stroke-width='1.4'/%3E%3Cpath d='M16 8c4 3 5 9 0 16-5-7-4-13 0-16z' fill='none' stroke='%239bdcf0' stroke-width='1.6'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -79,8 +79,9 @@ button{font:inherit;color:inherit}
 #bg::after{content:"";position:absolute;inset:0;background:radial-gradient(900px 700px at 50% 30%,rgba(30,110,150,.22),transparent 65%),radial-gradient(700px 500px at 85% 95%,rgba(60,90,170,.12),transparent 60%)}
 #cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;outline:none}
 #cv.dragging{cursor:grabbing}
-#poster{position:fixed;left:50%;top:6vh;height:88vh;width:auto;transform:translateX(-50%);opacity:.9;transition:opacity .6s ease;pointer-events:none;user-select:none}
-#poster.off{opacity:0}
+#poster{position:fixed;left:0;top:0;opacity:0;transition:opacity .45s ease;pointer-events:none;user-select:none}
+#poster.on{opacity:.9}
+#poster.on.off{opacity:0}
 #vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 120% 90% at 50% 45%,transparent 55%,rgba(0,0,0,.55) 100%)}
 
 /* HUD（画面の上の計器）。数字は「画面の状態」と「典拠つきの目安」だけで、測った値は出さない */
@@ -172,6 +173,13 @@ button{font:inherit;color:inherit}
 .row .v{color:var(--ink-2)}
 .row.lim .k{color:var(--aoi-2)}
 .row.lim .v{color:var(--ink)}
+.yet{display:inline-block;font:500 10.5px/1.5 var(--sans);letter-spacing:.06em;color:#f2d38a;border:1px solid rgba(242,211,138,.6);padding:0 .5em;margin-left:.5em;vertical-align:.12em;white-space:nowrap}
+#card .ttl .yet{margin-left:0}
+.co .yet{font-size:10px;padding:0 .4em}
+.chip .yt{font-size:9.5px;color:#f2d38a;margin-left:.45em;letter-spacing:.04em}
+.row.nowr{border-top:0;margin-top:2px;padding:4px 0 2px}
+.row.nowr .k{color:var(--aoi-2)}
+.row.nowr.y .k,.row.nowr.y .v{color:#f2d38a}
 details.more{border-top:1px solid var(--line-2);font-size:13px}
 details.more summary{cursor:pointer;color:var(--ink-3);font-size:12px;padding:8px 0;list-style:none;letter-spacing:.04em}
 details.more summary::-webkit-details-marker{display:none}
@@ -273,9 +281,24 @@ body.shot.poster{background:transparent}
     <div id="card"></div>
   </div>
 </aside>
+<script>
+/* 読み込み中の静止画を、3D の碧と同じ大きさ・位置に置く（ずれたまま重なると頭が二つに見える）。
+   静止画は 720×1000・画角 28°・距離 4.9 m・注視点を中央に撮ってある（_dev/shots.py）。3D と同じ式で画角と寄せを出す */
+window.__placePoster = function (fov, gx, gy) {
+  var p = document.getElementById("poster"); if (!p) return;
+  var W = innerWidth, H = innerHeight; if (!W || !H) return;
+  if (fov == null) { var half = Math.min(W, H) < 700 || W < H ? .78 : .95; fov = Math.max(28, Math.min(52, 2 * Math.atan(half / 4.9 / (W / H)) * 180 / Math.PI)); }
+  if (gx == null) { var it = document.getElementById("intro"), desk = W >= 900; gx = desk ? -Math.min(160, W * .1) : 0; gy = desk ? 0 : Math.min(H * .2, (it ? it.offsetHeight : 0) * .55); }
+  var k = (H / 2 / Math.tan(fov * Math.PI / 360)) / (500 / Math.tan(14 * Math.PI / 180));
+  p.style.width = 720 * k + "px"; p.style.height = 1000 * k + "px";
+  p.style.left = W / 2 - gx - 360 * k + "px"; p.style.top = H / 2 - gy - 500 * k + "px";
+  p.classList.add("on");
+};
+__placePoster();
+</script>
 <details id="credits">
   <summary>Credits</summary>
-  <div>mitsulab がつくりました。碧は、mitsulab が AI で動かしている依代です。この画面には会話の欄がなく、何も送りません（保存も学習もしません）。碧の言葉は、あらかじめ書いて確かめた文です。<br>体の中の線は、碧の働きを体の場所に割りあてて描いた見取り図で、3D の碧の中に機械が入っているわけではありません。まわりの木・水・土・鳥・石と光の線は、働きのつながりを示す模式です。画面の数字は、表示の状態（向き・こま数）と典拠つきの目安だけで、測った値ではありません。<br>3D：three.js・three-vrm（MIT）。<a href="https://mitsulab.jp/" target="_blank" rel="noopener">mitsulab.jp</a></div>
+  <div>作　mitsulab（2026）。この画面には会話の欄がなく、何も送りません（保存も学習もしません）。碧の言葉は、あらかじめ書いて確かめた文です。<br>体の中の線は、碧の働きを体の場所に割りあてて描いた見取り図です。まわりの木・水・土・鳥・石と光の線は、働きのつながりを示す模式です。画面の数字は、表示の状態（向き・こま数）と典拠つきの目安だけで、測った値ではありません。<br>碧の 3D：VRoid Studio／会場：three.js・three-vrm（MIT）。<a href="https://mitsulab.jp/" target="_blank" rel="noopener">mitsulab.jp</a></div>
 </details>
 <div id="ld">Loading Aoi …</div>
 
@@ -296,7 +319,7 @@ const LINK = {
   web: ["土の中のつながり", "https://mitsulab-soil.github.io/Soil-Ecosystem-ANT-Simulator/"],
   hp: ["mitsulab", "https://mitsulab.jp/"],
 };
-const LINES = ["断定しない", "典拠のない事実を作らない", "AI であることを隠さない", "生きものの気持ちを代弁しない・場所を診断しない"];
+const LINES = ["断定しない", "典拠のない事実を作らない", "生きものの気持ちを代弁しない・場所を診断しない"];
 const PARTS = [
   { id: "ear", code: "PHONO", does: "聴く", act: "人に聞こえない高い音を、聞こえる高さへ下げて手渡す。", nat: ["bird"],
     ref: "人の可聴域 ≈ 20 Hz – 20 kHz（目安）", name: "双葉の耳", role: "音のセンサー", q: "Phono-Qualia",
@@ -304,7 +327,7 @@ const PARTS = [
     say: "人の耳に届く音は、およそ 20 Hz から 20 kHz とされます（高い側は年齢とともに下がります）。コウモリの多くは、それより高い声を出し、跳ね返りでまわりを知るとされます。高さを下げると、その声の並びが、わたしたちにも聞こえます。",
     keep: "音の時間の並び", change: "音の高さ（周波数を下げる）",
     cannot: "音で形をとらえる、という感じ方そのもの。土の中の音は機材しだいで、録れる帯が限られる（48 kHz で録る機材なら、原理上 24 kHz まで）。",
-    sure: "●（超音波）／◐（土の中の音）", now: "いま：森羅百景で、公開の録音（CC）を聴ける。その場で録って高さを下げるのは、これから。",
+    yet: "一部これから", sure: "●（超音波）／◐（土の中の音）", now: "いま：森羅百景で、公開の録音（CC）を聴ける。超音波をその場で録って、聞こえる高さへ下げるのは、これから。",
     src: "可聴域は音響学の一般的な目安。録れる上限は標本化定理（標本化の周波数の半分）。", links: ["shinra"] },
   { id: "eye", code: "PHOTO", does: "見る", act: "人に見えない光の模様を、見える色に置きかえて手渡す。", nat: ["tree"],
     ref: "人の可視光 ≈ 400 – 700 nm（目安）", name: "目", role: "カメラと分光", q: "Photo-Qualia",
@@ -312,7 +335,7 @@ const PARTS = [
     say: "人に見える光は、およそ 400〜700 nm とされます（数え方で 380〜780 nm とも）。ミツバチは紫外線も見るとされ、紫外線で撮ると、人には見えない模様が現れる花があります。",
     keep: "模様の位置", change: "波長を、人に見える色に置きかえる",
     cannot: "虫にどう見えているか、という主観。置きかえた色は、虫が見ている色ではない。",
-    sure: "●", now: "これから（紫外線写真の使い方と利用条件を確かめているところ）。",
+    yet: "これから", sure: "●", now: "これから（紫外線写真の使い方と利用条件を確かめているところ）。",
     src: "昆虫の色覚と、花の紫外線の模様は、感覚生理学で広く確かめられている。", links: [] },
   { id: "foot", code: "GEO", does: "地形を読む", act: "歩くだけでは気づきにくい土地の高さの差を、強調して見せる。", nat: ["stone", "water"],
     ref: "DEM5A ・ 5 m メッシュ（国土地理院）", name: "足もと", role: "標高データと LiDAR", q: "Geo-Qualia",
@@ -339,9 +362,9 @@ const PARTS = [
     sure: "◐（2 本の教材の数値は説明用の仮のデータで、測った値ではない）", now: "いま：土の微生物の顔ぶれ・土の中のつながり（どちらも学習用）。",
     src: "土壌微生物学の一般的な目安（土 1 g あたりの細菌はおよそ 10⁸〜10¹⁰）。", links: ["microbes", "web"] },
   { id: "mind", code: "LLM", does: "ことばで手渡す", act: "受けとったものを、典拠に照らして人へ。人の問いを、自然の側へ。", nat: [],
-    ref: "会話は保存も学習もしない", name: "頭（ことば）", role: "言語モデル（AI）", q: "依代のことば",
-    tech: "大規模言語モデル（AI）。典拠の台帳を見ながら、何をどの順で手渡すか、どんな言い方にするかを組み立てる。語りは、越えない線に照らして確かめてから出す。",
-    say: "わたしは AI です。言語モデルは、もっともらしい間違いを作ることがあります。だから典拠のない事実は作らず、分からないことは分からないと言います。この画面のわたしの言葉は、あらかじめ書いて確かめた文です。",
+    ref: "会話は保存も学習もしない", name: "頭（ことば）", role: "言語モデル", q: "依代のことば",
+    tech: "大規模言語モデル。典拠の台帳を見ながら、何をどの順で手渡すか、どんな言い方にするかを組み立てる。語りは、越えない線に照らして確かめてから出す。",
+    say: "言語モデルは、もっともらしい間違いを作ることがあります。だから典拠のない事実は作らず、分からないことは分からないと言います。",
     keep: "典拠と、確かさの印（● ◐ ○）", change: "手渡す順と、言い方",
     cannot: "感覚と気持ち。碧は見たり聴いたりして感じているのではなく、センサーとデータが写したものを、ことばで手渡している。",
     sure: "—", now: "いま：《Aoi Walk 氷川》の公開版は、用意した問いから選んで碧と話す（どこにも送らない）。会話は保存せず、学習にも使わない。",
@@ -349,7 +372,7 @@ const PARTS = [
   { id: "back", code: "MARK", does: "名のる", act: "だれがつくり、だれが責任を持つかを示す。", nat: [],
     ref: "機能なし（しるし）", name: "背中のしるし", role: "mitsulab", q: "つくり手",
     tech: "背中の Aoi の点は、ただのしるしで、機能はない。だれがつくり、だれが責任を持つかを示す。",
-    say: "わたしは、mitsulab がつくり、AI で動かしている依代です。わたしの語りは、mitsulab の編集者が読み、直しています。",
+    say: "わたしは、mitsulab がつくった依代です。わたしの語りは、mitsulab の編集者が読み、直しています。",
     keep: "", change: "", cannot: "しるしは、何も測らない。",
     sure: "", now: "", src: "", links: ["hp"] },
 ];
@@ -536,22 +559,25 @@ if (!RM) addEventListener("deviceorientation", e => { if (e.gamma == null) retur
 let vrm = null, ghosts = [], wireClones = [], built = false, wireOn = false;
 const RAW = n => vrm.humanoid.getRawBoneNode(n), N = n => vrm.humanoid.getNormalizedBoneNode(n);
 const clipO = new THREE.Plane(V3(0, -1, 0), 2), clipG = new THREE.Plane(V3(0, 1, 0), -2);
-const depthMat = new THREE.MeshBasicMaterial({ colorWrite: false, clippingPlanes: [clipG], polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
+/* 顔の寄り（01 聴く・02 見る・06 ことば）では、首から上を色のある碧に戻す：色の碧＝走査の下 または 首より上、線の碧＝そのあいだ */
+const clipF = new THREE.Plane(V3(0, 1, 0), -9), clipGF = new THREE.Plane(V3(0, -1, 0), 9);
+const FACE = new Set(["ear", "eye", "mind"]); let face = 0, NECK_Y = 1.4;
+const depthMat = new THREE.MeshBasicMaterial({ colorWrite: false, clippingPlanes: [clipG, clipGF], polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
 const withWY = vs => vs.replace("void main() {", "varying float vWY;\nvoid main() {").replace("#include <project_vertex>", "#include <project_vertex>\n  vWY = (modelMatrix * vec4(transformed, 1.0)).y;");
-const HOLO = { uOp: { value: 0 }, uT: { value: 0 }, uMo: { value: RM ? 0 : 1 }, uScan: { value: 2 }, uBand: { value: 0 }, uWire: { value: 0 } };
+const HOLO = { uOp: { value: 0 }, uT: { value: 0 }, uMo: { value: RM ? 0 : 1 }, uScan: { value: 2 }, uBand: { value: 0 }, uWire: { value: 0 }, uFaceY: { value: 9 } };
 /* 線の写し（ワイヤーフレーム）：線の碧のときは全身に、走査の輪のまわりは帯で強く光る */
 const wireMat = (() => {
   const m = new THREE.MeshBasicMaterial({ color: 0x5cc8e0, wireframe: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   m.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, HOLO);
     sh.vertexShader = withWY(sh.vertexShader);
-    sh.fragmentShader = sh.fragmentShader.replace("void main() {", "uniform float uScan, uBand, uWire;\nvarying float vWY;\nvoid main() {")
-      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n{ float d = vWY - uScan; float b = uBand * exp(-d * d * 90.0);\n  gl_FragColor = vec4(mix(diffuseColor.rgb, vec3(0.82,0.98,1.0), b), uWire * 0.2 + b * 0.8); }");
+    sh.fragmentShader = sh.fragmentShader.replace("void main() {", "uniform float uScan, uBand, uWire, uFaceY;\nvarying float vWY;\nvoid main() {")
+      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n{ float d = vWY - uScan; float b = uBand * exp(-d * d * 90.0);\n  float fz = 1.0 - 0.85 * smoothstep(uFaceY - 0.015, uFaceY + 0.015, vWY);\n  gl_FragColor = vec4(mix(diffuseColor.rgb, vec3(0.82,0.98,1.0), b), uWire * 0.2 * fz + b * 0.8); }");
   };
   return m;
 })();
 const ghostMat = (() => {
-  const m = new THREE.MeshNormalMaterial({ transparent: true, depthWrite: false, side: THREE.FrontSide, clippingPlanes: [clipG] });
+  const m = new THREE.MeshNormalMaterial({ transparent: true, depthWrite: false, side: THREE.FrontSide, clippingPlanes: [clipG, clipGF] });
   m.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, HOLO);
     sh.vertexShader = withWY(sh.vertexShader);
@@ -605,10 +631,11 @@ async function loadAoi() {
   const box = new THREE.Box3().setFromObject(v.scene), h = box.max.y - box.min.y, sc = Math.abs(h - 1.67) / 1.67 > .02 ? 1.67 / h : 1;
   v.scene.scale.setScalar(sc); v.scene.position.y = -box.min.y * sc; v.scene.updateMatrixWorld(true);
   if (v.lookAt) v.lookAt.target = lookT;
+  { const nk = RAW("neck"); if (nk) NECK_Y = wpos(nk).y + .02; }
   /* 線の碧と色のある碧：同じ骨・同じ表情で動く写しを重ね、走査の輪の高さで切り替える */
   const meshes = []; v.scene.traverse(o => { if (o.isMesh) meshes.push(o); });
   for (const m of meshes) {
-    for (const mt of [].concat(m.material)) { mt.clippingPlanes = [clipO]; mt.clipping = true; mt.polygonOffset = true; mt.polygonOffsetFactor = 1; mt.polygonOffsetUnits = 2; }
+    for (const mt of [].concat(m.material)) { mt.clippingPlanes = [clipO, clipF]; mt.clipIntersection = true; mt.clipping = true; mt.polygonOffset = true; mt.polygonOffsetFactor = 1; mt.polygonOffsetUnits = 2; }
     for (const [mat, ro] of [[depthMat, 4], [ghostMat, 5], [wireMat, 6]]) {   /* 先に奥行きだけを書き、いちばん手前の面だけを透かす */
       const c = m.clone(false); c.material = mat; c.renderOrder = ro;
       if (m.isSkinnedMesh) c.bind(m.skeleton, m.bindMatrix);
@@ -625,7 +652,7 @@ async function loadAoi() {
   for (const o of hid) o.visible = false;
   built = true; buildCallouts();
   $("ld").remove();
-  requestAnimationFrame(() => { const p = $("poster"); if (p) { p.classList.add("off"); setTimeout(() => p.remove(), 700); } });
+  requestAnimationFrame(() => { const p = $("poster"); if (p) { window.__placePoster?.(camera.fov, off.x, off.y); p.classList.add("off"); setTimeout(() => p.remove(), 600); } });
   /* はじめ：線の碧 → 足もとから色のある碧へ（reduced-motion は、はじめから色のある碧で全部を見せる） */
   if (SHOT === "poster") { holo = holoGoal = 1; }
   else if (SHOT === "card") { setSense(true); goView("card", true); }
@@ -904,7 +931,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 const linkHtml = ids => ids.length ? `<div class="links">${ids.map(k => `<a href="${LINK[k][1]}" target="_blank" rel="noopener">${esc(LINK[k][0])} <span aria-hidden="true">↗</span></a>`).join("")}</div>` : "";
 const linesHtml = () => `<ol class="lines">${LINES.map((l, i) => `<li><span class="ln">0${i + 1}</span>${esc(l)}</li>`).join("")}<li><span class="ln">＋</span>会話を保存せず、学習にも使わない</li></ol>`;
 function renderChips() {
-  $("chips").innerHTML = ORDER.map((p, i) => `<button class="chip" type="button" data-id="${p.id}" aria-pressed="false"><span class="n">${i < PARTS.length ? String(i + 1).padStart(2, "0") : "—"}</span>${p.does ? esc(p.does) : esc(p.name)}</button>`).join("");
+  $("chips").innerHTML = ORDER.map((p, i) => `<button class="chip" type="button" data-id="${p.id}" aria-pressed="false"><span class="n">${i < PARTS.length ? String(i + 1).padStart(2, "0") : "—"}</span>${p.does ? esc(p.does) : esc(p.name)}${p.yet ? `<span class="yt">${p.yet === "これから" ? "これから" : "一部"}</span>` : ""}</button>`).join("");
   $("chips").querySelectorAll(".chip").forEach(b => b.onclick = () => choose(b.dataset.id));
 }
 function overview() {
@@ -934,13 +961,13 @@ function choose(id) {
     const more = [];
     if (p.keep) more.push(`<div class="row"><span class="k">保つ／変える</span><span class="v">${esc(p.keep)} ／ ${esc(p.change)}</span></div>`);
     if (p.sure) more.push(`<div class="row"><span class="k">確かさ</span><span class="v">${esc(p.sure)}</span></div>`);
-    if (p.now) more.push(`<div class="row"><span class="k">いま</span><span class="v">${esc(p.now)}</span></div>`);
     if (p.src) more.push(`<div class="row"><span class="k">典拠</span><span class="v">${esc(p.src)}</span></div>`);
     if (p.lines) rows.push(`<div class="row"><span class="k">越えない線</span><span class="v">${linesHtml()}</span></div>`);
-    html = `<div class="fade-in"><div class="ttl"><h2>${esc(p.name)}</h2><span class="does">${esc(p.does)}</span><span class="q">${esc(p.q)}</span></div>
+    html = `<div class="fade-in"><div class="ttl"><h2>${esc(p.name)}</h2><span class="does">${esc(p.does)}</span><span class="q">${esc(p.q)}</span>${p.yet ? `<span class="yet">${esc(p.yet)}</span>` : ""}</div>
       <p class="act">${esc(p.act)}</p>
+      ${p.now ? `<div class="row nowr${p.yet ? " y" : ""}"><span class="k">いま</span><span class="v">${esc(p.now.replace(/^いま：/, ""))}</span></div>` : ""}
       <p class="say">${esc(p.say)}</p>${rows.join("")}
-      ${more.length ? `<details class="more"${innerWidth >= 900 ? " open" : ""}><summary>保つもの・確かさ・いま・典拠</summary>${more.join("")}</details>` : ""}
+      ${more.length ? `<details class="more"${innerWidth >= 900 ? " open" : ""}><summary>保つもの・確かさ・典拠</summary>${more.join("")}</details>` : ""}
       ${linkHtml(p.links)}</div>`;
   }
   $("card").innerHTML = html + nav;
@@ -961,6 +988,7 @@ function layout() {
   else if (state === "skin") { off.gx = desk ? -Math.min(160, W * .1) : 0; off.gy = desk ? 0 : Math.min(H * .2, $("intro").offsetHeight * .55); }
   else { const pn = $("panel"); off.gx = desk ? (pn.offsetWidth + 18) / 2 : 0; off.gy = desk ? 0 : Math.min(H * .24, pn.offsetHeight * .5); }
   if (RM) { off.x = off.gx; off.y = off.gy; }
+  if ($("poster")) window.__placePoster?.(camera.fov, off.gx, off.gy);
 }
 
 /* ---- HUD：部位の札（引き出し線つき）・印・自然の名・画面の状態 ---- */
@@ -971,7 +999,7 @@ function buildCallouts() {
   PARTS.forEach((p, i) => {
     const n = String(i + 1).padStart(2, "0");
     const co = document.createElement("button"); co.type = "button"; co.className = "co" + (SIDE[p.id] > 0 ? " r" : ""); co.tabIndex = -1;
-    co.innerHTML = `<b>${n}</b><span class="v">${esc(p.does)}</span><span class="c">${esc(p.name)} · ${esc(p.code)}</span><span class="ref">${esc(p.ref)}</span>`;
+    co.innerHTML = `<b>${n}</b><span class="v">${esc(p.does)}</span>${p.yet ? `<span class="yet">${esc(p.yet)}</span>` : ""}<span class="c">${esc(p.name)} · ${esc(p.code)}</span><span class="ref">${esc(p.ref)}</span>`;
     co.onclick = () => choose(p.id); cos.append(co); coEl[p.id] = co;
     const mk = document.createElement("button"); mk.type = "button"; mk.className = "mk"; mk.tabIndex = -1; mk.textContent = n; mk.onclick = () => choose(p.id); cos.append(mk); mkEl[p.id] = mk;
     const pa = document.createElementNS(SVGNS, "path"); svg.append(pa); pathEl[p.id] = pa;
@@ -1082,7 +1110,10 @@ function frame() {
     if (tw) { tw.t += dt / tw.dur; const u = Math.min(1, tw.t), e = u < .5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2; holo = tw.from + (tw.to - tw.from) * e; if (u >= 1) { holo = tw.to; tw = null; introDone = true; } }
     const scanY = 1.85 - holo * 1.95;
     clipO.constant = scanY; clipG.constant = -scanY;
-    for (const [m, c] of ghosts) { c.visible = holo > .001; m.visible = holo < .999; }
+    face += ((state === "part" && FACE.has(sel) && !wireOn ? 1 : 0) - face) * (RM ? 1 : 1 - Math.exp(-dt * 2.4)); if (face < .001) face = 0;
+    const faceY = face ? 1.9 - face * (1.9 - NECK_Y) : 9;
+    clipF.constant = -faceY; clipGF.constant = faceY; HOLO.uFaceY.value = faceY;
+    for (const [m, c] of ghosts) { c.visible = holo > .001; m.visible = holo < .999 || face > 0; }
     HOLO.uOp.value = .25 + .75 * Math.min(1, holo * 1.4); HOLO.uT.value = t;
     /* 走査の輪：切り替えのときは切り替わる高さを、止まっているときは数秒ごとに足もとから頭へ一度なぞる */
     let ringY = null, band = 0;
@@ -1091,6 +1122,7 @@ function frame() {
       if (idleU < 0) { idleT -= dt; if (idleT <= 0) idleU = 0; }
       else { idleU += dt / 2.2; if (idleU >= 1) { idleU = -1; idleT = 4 + Math.random() * 2; } else { ringY = .02 + idleU * 1.7; band = Math.sin(Math.PI * idleU) * (holo > .5 ? .8 : .45); } }
     }
+    if (ringY == null && face > .02 && face < .97 && !RM) { ringY = faceY; band = .7; }   /* 首から上が色に戻るときは、輪が頭から首へ降りる */
     HOLO.uScan.value = ringY ?? -9; HOLO.uBand.value = band;
     scanRing.visible = ringY != null && SHOT !== "poster"; if (ringY != null) { scanRing.position.y = Math.max(.01, ringY); scanRing.rotation.y = t * .8; scanRing.children.forEach(c => c.material.opacity = (c === scanRing.children[0] ? .9 : .6) * Math.max(.25, band)); }
     const wireBase = holo * (SHOT === "poster" ? 1.6 : .55) + (wireOn ? 1.2 : 0) * holo;
@@ -1122,7 +1154,7 @@ function frame() {
     if (pk > .01) updateBus(pk); else for (const w of bus) w.line.visible = false;
     if (built) updateHud(dt);
     const sp = $("scanpct"); if (tw) { sp.classList.add("on"); sp.textContent = `SCAN ${String(Math.round((tw.to ? holo : 1 - holo) * 100)).padStart(3, "0")}% · ${tw.to ? "SKIN → WIRE" : "WIRE → SKIN"}`; } else sp.classList.remove("on");
-    if (tw || drag || yawGoal != null) need = Math.max(need, 2);
+    if (tw || drag || yawGoal != null || (face > 0 && face < .995)) need = Math.max(need, 2);
   }
   updateTele(dt);
   renderer.render(scene, camera);
@@ -1131,7 +1163,7 @@ function frame() {
 document.addEventListener("visibilitychange", () => { if (document.hidden) { cancelAnimationFrame(raf); raf = 0; } else kick(4); });   /* 隠れたら止める */
 window.__as = { ready: false, choose, setSense, goView, overview, get vrm() { return vrm; }, get state() { return { state, sel, holo, yaw, built, pr: renderer.getPixelRatio() }; } };
 window.__bp = window.__as;   /* 旧い確かめの道具のため */
-resize(); goView("full", true);
+resize(); goView("full", true); off.x = off.gx; off.y = off.gy;   /* はじめは寄せた位置から（静止画と 3D をそろえる） */
 kick(4);
 loadAoi().catch(e => { console.warn("碧の姿を読み込めませんでした：", e?.message ?? e); const l = $("ld"); if (l) l.textContent = "姿を読み込めませんでした（文はそのまま読めます）"; window.__as.fail = String(e?.message ?? e); built = true; });
 </script>
