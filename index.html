@@ -283,7 +283,7 @@ body.shot.poster{background:transparent}
 </div>
 <section id="intro" aria-label="はじめに">
   <p class="lead">碧は、自然の側のものを<span class="nw">受けとり、</span><span class="nw">人へ手渡す。</span></p>
-  <p>耳・目・足もと・胸・手・頭。それぞれが、人と自然をつなぐ働きを一つずつ持っています。体を押すと、その感じかたと、まだ移せないものが見えます。</p>
+  <p>耳・目・足もと・胸・手・頭。この六つが、人と自然をつなぐ働きを一つずつ持っています。背中には、つくり手のしるしがあります。体を押すと、その感じかたと、まだ移せないものが見えます。</p>
   <button class="go" id="go" type="button">感じかたを見る <code>Aoi.sense()</code> <span aria-hidden="true">→</span></button>
 </section>
 <aside id="panel" class="off" aria-live="polite">
@@ -339,7 +339,7 @@ const PARTS = [
     say: "人の耳に届く音は、およそ 20 Hz から 20 kHz とされます（高い側は年齢とともに下がります）。コウモリの多くは、それより高い声を出し、跳ね返りでまわりを知るとされます。高さを下げると、その声の並びが、わたしたちにも聞こえます。",
     keep: "音の時間の並び", change: "音の高さ（周波数を下げる）",
     cannot: "音で形をとらえる、という感じ方そのもの。土の中の音は機材しだいで、録れる帯が限られる（48 kHz で録る機材なら、原理上 24 kHz まで）。",
-    yet: "一部これから", sure: "●（超音波）／◐（土の中の音）", now: "いま：森羅百景で、公開の録音（CC）を聴ける。超音波をその場で録って、聞こえる高さへ下げるのは、これから。",
+    sure: "●（超音波）／◐（土の中の音）", now: "いま：森羅百景で、公開の録音（CC）を聴ける。",
     src: "可聴域は音響学の一般的な目安。録れる上限は標本化定理（標本化の周波数の半分）。", links: ["shinra"] },
   { id: "eye", code: "PHOTO", does: "見る", act: "人に見えない光の模様を、見える色に置きかえて手渡す。", nat: ["tree"],
     ref: "人の可視光 ≈ 400 – 700 nm（目安）", name: "目", role: "カメラと分光", q: "Photo-Qualia",
@@ -347,7 +347,7 @@ const PARTS = [
     say: "人に見える光は、およそ 400〜700 nm とされます（数え方で 380〜780 nm とも）。ミツバチは紫外線も見るとされ、紫外線で撮ると、人には見えない模様が現れる花があります。",
     keep: "模様の位置", change: "波長を、人に見える色に置きかえる",
     cannot: "虫にどう見えているか、という主観。置きかえた色は、虫が見ている色ではない。",
-    yet: "これから", sure: "●", now: "これから（紫外線写真の使い方と利用条件を確かめているところ）。",
+    sure: "●", now: "",
     src: "昆虫の色覚と、花の紫外線の模様は、感覚生理学で広く確かめられている。", links: [] },
   { id: "foot", code: "GEO", does: "地形を読む", act: "歩くだけでは気づきにくい土地の高さの差を、強調して見せる。", nat: ["stone", "water"],
     ref: "DEM5A ・ 5 m メッシュ（国土地理院）", name: "足もと", role: "標高データと LiDAR", q: "Geo-Qualia",
@@ -956,7 +956,7 @@ function chipEnd() { const c = $("chips"); $("chipw").classList.toggle("end", c.
 function overview() {
   sel = null; state = "sense"; goView("full"); setCallouts(); $("pcode").textContent = "SENSE · OVERVIEW";
   $("chips").querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", "false"));
-  $("card").innerHTML = `<div class="fade-in"><p class="say">耳・目・足もと・胸・手・頭、そして背中。一つずつ、何を受けとり、何を移せないかを話しますね。</p>
+  $("card").innerHTML = `<div class="fade-in"><p class="say">耳・目・足もと・胸・手・頭の六つで、何を受けとり、何を移せないかを、一つずつ話しますね。背中は、つくり手のしるしです。</p>
     <p style="font-size:13px;color:var(--ink-2)">上の名前か、体の印を押してください。光の線は、それぞれの働きがつながる自然の側（木・水・土・鳥・石）を示す模式です。</p>
     <div class="nav"><span></span><button type="button" data-step="1">はじめる ›</button></div></div>`;
   $("card").querySelector("[data-step]").onclick = () => choose(ORDER[0].id);
