@@ -17,7 +17,7 @@
   ・見た目の方向：近未来の HUD（計器の表示）。線で描いた碧の走査（ホログラム）・碧色の細い線・体をなぞる走査の輪と掃く光・
     部位ごとに引き出し線で付いた札・碧と自然（木・水・土・鳥・石）のあいだを両向きに流れる光の線・奥行きの層と小さな視差・
     細かい格子と流れる光の粒の暗い背景。はじめに線の碧が足もとから色のある碧へ移る。
-  ・碧の姿＝assets/aoi.vrm（碧の現行デザイン）。腕の休め＝01_いま動いているもの/05_碧/02_碧の身体/aoi_pose.js の写し。
+  ・碧の姿＝assets/aoi.vrm（碧の現行デザイン）。腕の休め＝02_開発中/01_碧/02_碧の身体/aoi_pose.js の写し。
   ・部品の文は PARTS の一か所。技術は実在のものだけ、限界（移せないもの）を必ず添える。数値は幅のまま、典拠つき。
   ・体の中の線・まわりの木や水の図・光の線は模式（見取り図）。測った値ではない。
   ・速さ：描く解像度に上限（画素比 1.5・総画素 240 万）＋重いときは下げる／隠れたら止める／reduced-motion は止まった一枚（全部見える）。
@@ -324,7 +324,7 @@ import * as THREE from "three";
    Qualia の名前と「保つ／変える／移せない」は Qualium 概念の定義 v2（2026-10-01）にそろえる。
 --------------------------------------------------------------------------- */
 const LINK = {
-  hikawa: ["《Aoi Walk 氷川》", "https://mitsulab-soil.github.io/aoi-walk-hikawa/"],
+  hikawa: ["《森羅道中 氷川》", "https://mitsulab-soil.github.io/aoi-walk-hikawa/"],
   ensemble: ["氷川重奏", "https://mitsulab-soil.github.io/HIKAWA-ENSEMBLE/"],
   shinra: ["森羅百景", "https://mitsulab-soil.github.io/shinra-hyakkei/"],
   microbes: ["土の微生物の顔ぶれ", "https://mitsulab-soil.github.io/soil-metagenomics-topography-correlation/"],
@@ -355,7 +355,7 @@ const PARTS = [
     say: "氷川参道の、一の鳥居からの 2 キロは、ほとんど平らです。境内の西の台地面は標高 14〜15 m、神池のあたりは 9〜12 m ほどで（読み方で幅があります）、小さな谷の低みにあるとみられます。高さを強調すると、歩くだけでは気づきにくい差が見えます。",
     keep: "高さの順", change: "高さを強調する（倍率は画面に出す）",
     cannot: "歩く体が感じる勾配の重さ。5 m より細かい起伏は丸まる。足もとの格子の起伏は模式で、強調してある。",
-    sure: "●（数値は DEM5A を mitsulab が読んだもの・幅あり）", now: "いま：《Aoi Walk 氷川》で、参道の高さを 3 倍にして見られる。",
+    sure: "●（数値は DEM5A を mitsulab が読んだもの・幅あり）", now: "いま：《森羅道中 氷川》で、参道の高さを 3 倍にして見られる。",
     src: "国土地理院 基盤地図情報 数値標高モデル（5 m メッシュ・DEM5A）。", links: ["hikawa"] },
   { id: "chest", code: "BIO / LOGO", does: "覚える", act: "だれが、いつ、どこで見て、どう書いたかを、出どころごと持つ。", nat: ["tree", "bird"],
     ref: "観察記録 ＋ 典拠の台帳", name: "胸", role: "記録と典拠", q: "Bio-Qualia ／ Logo-Qualia",
@@ -379,7 +379,7 @@ const PARTS = [
     say: "言語モデルは、もっともらしい間違いを作ることがあります。だから典拠のない事実は作らず、分からないことは分からないと言います。",
     keep: "典拠と、確かさの印（● ◐ ○）", change: "手渡す順と、言い方",
     cannot: "感覚と気持ち。碧は見たり聴いたりして感じているのではなく、センサーとデータが写したものを、ことばで手渡している。",
-    sure: "—", now: "いま：《Aoi Walk 氷川》の公開版は、用意した問いから選んで碧と話す（どこにも送らない）。会話は保存せず、学習にも使わない。",
+    sure: "—", now: "いま：《森羅道中 氷川》の公開版は、用意した問いから選んで碧と話す（どこにも送らない）。会話は保存せず、学習にも使わない。",
     src: "碧の越えない線（mitsulab 事業計画書 §9.1）。", lines: true, links: ["hikawa"] },
   { id: "back", code: "MARK", does: "名のる", act: "だれがつくり、だれが責任を持つかを示す。", nat: [],
     ref: "機能なし（しるし）", name: "背中のしるし", role: "mitsulab", q: "つくり手",
@@ -612,7 +612,7 @@ const ghostMat = (() => {
 function pose(t) {
   const br = RM ? 0 : Math.sin(t * 2 * Math.PI / 4.6);
   const set = (n, x, y, z) => { const b = N(n); if (b) b.rotation.set(x, y, z); };
-  // （腕の休め＝01_いま動いているもの/05_碧/02_碧の身体/aoi_pose.js の写し。前腕 Y は左が負・右が正＝肘が前へ曲がる）
+  // （腕の休め＝02_開発中/01_碧/02_碧の身体/aoi_pose.js の写し。前腕 Y は左が負・右が正＝肘が前へ曲がる）
   set("leftUpperArm", -.12, 0, -1.28); set("rightUpperArm", -.12, 0, 1.28);
   set("leftLowerArm", 0, -.28, 0); set("rightLowerArm", 0, .28, 0);
   set("leftHand", 0, 0, 0); set("rightHand", 0, 0, 0);
