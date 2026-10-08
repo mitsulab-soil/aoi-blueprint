@@ -443,11 +443,22 @@ function stepParticles(dt, t) {
 const labelsEl = $("labels");
 const LB = [];
 function mkLabel(html, cls, anchorFn, onClick) {
-  const el = document.createElement(onClick ? "button" : "div"); el.className = "lb " + (cls || ""); el.innerHTML = html; labelsEl.appendChild(el);
+  const el = document.createElement(onClick ? "button" : "div"); if (!onClick) el.setAttribute("aria-hidden", "true"); el.className = "lb " + (cls || ""); el.innerHTML = html; labelsEl.appendChild(el);
   if (onClick) { el.addEventListener("click", onClick); el.style.pointerEvents = "auto"; }
   const L = { el, anchorFn, show: true }; LB.push(L); return L;
 }
-for (const L of LAYERS) { L.label = mkLabel(`<b>${L.name}</b><i>${L.note}</i>`, "", () => L.anchor, null); L.label.grp = "world"; }
+const WHY = {"uv": "人の目には見えない", "ir": "光としては見えない（肌は温かさとして）", "inf": "耳には聞こえにくい", "ult": "耳には聞こえない", "mag": "人は感じとれないとされる"};
+/* 裏で、受けとれない層の名前を、画面の空いた所（札の外）へ寄せる。値は空いた範囲の割合 */
+const RECV_AT = { uv: [.12, .12], ir: [.62, .2], inf: [.08, .45], ult: [.78, .74], mag: [.14, .8] };
+const RECV_AT_M = { uv: [.22, .0], ir: [.7, .1], inf: [.22, .2], ult: [.7, .3], mag: [.28, .4] };
+function recvAt(id) {
+  const W = innerWidth, H = innerHeight, cr = card.classList.contains("hide") ? null : card.getBoundingClientRect();
+  const x0 = 110, x1 = MOBILE() ? W - 110 : (cr ? cr.left - 110 : W - 110), y0 = MOBILE() ? 230 : 140, y1 = MOBILE() ? (cr ? cr.top - 20 : H - 140) : H - 150;
+  const f = (MOBILE() ? RECV_AT_M : RECV_AT)[id], sx = x0 + (x1 - x0) * f[0], sy = y0 + (y1 - y0) * f[1];
+  const z = V3(0, 1.3, 0).project(camera).z;
+  return V3(sx / W * 2 - 1, -(sy / H * 2 - 1), z).unproject(camera);
+}
+for (const L of LAYERS) { L.label = mkLabel(`<b>${L.name}</b><i>${L.note}</i>${L.human ? "" : `<span class="why">${WHY[L.id]}</span>`}`, L.human ? "" : "nh", () => L.human ? L.anchor : (flipK > 0 ? L.anchor.clone().lerp(recvAt(L.id), Math.min(1, flipK * 1.5)) : L.anchor), null); L.label.grp = "world"; L.label.el.setAttribute("aria-hidden", "true"); }
 const gateLabels = S.stages.map((s, i) => { const L = mkLabel(`<span style="font-family:var(--mono);color:var(--ink-3);margin-right:6px">${s.no}</span>${s.name}`, "gate", () => V3(GX[i], PY - (gates[i].r || 1.4) - .35, PZ), () => go(STEPS.findIndex(x => x.id === s.id))); L.grp = "path"; return L; });
 const partBtns = S.parts.map(p => {
   const el = document.createElement("button"); el.className = "pt"; el.textContent = `${p.name.replace("（ことば）", "")}　${p.does}`; el.setAttribute("aria-label", `${p.name}：${p.does}`);
@@ -468,7 +479,7 @@ function updateLabels() {
     if (!ok || x < hw || x > W - hw || y < (MOBILE() ? 215 : 110) || y > H - 120 || (cr && x + hw > cr.left && y > cr.top - 10 && y < cr.bottom + 30)) { L.el.style.display = "none"; continue; }
     L.el.style.display = ""; L.el.style.transform = `translate(${x}px,${y}px) translate(-50%,${L.grp === "path" ? "0" : "-100%"})`;
   }
-  for (const L of LAYERS) L.label.el.classList.toggle("off", flipK > .5 && !L.human);
+  for (const L of LAYERS) { L.label.el.classList.toggle("off", flipK > .35 && !L.human); L.label.el.classList.toggle("lit", flipK > .05 && flipK < .35 && !L.human); }
   for (let i = 0; i < gateLabels.length; i++) gateLabels[i].el.classList.toggle("cur", cur.stage === i);
   const showParts = cur.id === "recv" && vrm;
   for (const b of partBtns) {
@@ -491,7 +502,7 @@ function view(id) {
   const far = asp < .75 ? 1.55 : 1;
   switch (id) {
     case "world": return [V3(3.6 * far, 2.5 * far, 6.4 * far), V3(-.9, 1.7, -.7)];
-    case "recv": return [V3(.55, 1.45, 2.7 * (m ? 1.25 : 1)), V3(-.05, 1.12, 0)];
+    case "recv": return m ? [V3(1.6, 1.9, 6.4), V3(-.6, 1.6, -.6)] : [V3(2.2, 1.9, 5.0), V3(-.6, 1.45, -.5)];
     case "change": return [V3(2.2 * far, 2.2, 6.6 * far), V3(-.2, 1.2, -.6)];
     case "hear": return [V3(2.8 * far, 2.3, 6.2 * far), V3(-.6, 1.6, -.6)];
     case "face": return m ? [V3(.32, 1.45, 1.75), V3(-.02, 1.38, 0)] : [V3(.5, 1.5, 2.1), V3(-.05, 1.38, 0)];
@@ -571,11 +582,11 @@ function setSide(s) {
   const id = s ? "recv" : "world"; if (cur.id !== id) go(STEPS.findIndex(x => x.id === id));
 }
 function updateLayers(t, dt) {
-  flipK += (flipGoal - flipK) * (RM ? 1 : Math.min(1, dt * 2.4));
+  flipK = RM ? flipGoal : flipK + Math.sign(flipGoal - flipK) * Math.min(Math.abs(flipGoal - flipK), dt / (flipGoal > flipK ? 3.2 : 1.2));   /* 裏へは 3.2 秒かけて：受けとれない層が一度光ってから薄れる */
   const pathOnly = cur.ch === "path";
   for (const L of LAYERS) {
-    const k = L.human ? 1 : 1 - .9 * flipK; L.k = k;
-    for (const m of L.mats) if (!L.ringItems) m.opacity = m.userData.base * k;
+    const f = flipK, k = L.human ? 1 : f < .35 ? 1 + 1.3 * (f / .35) : Math.max(.08, 2.3 * (1 - (f - .35) / .6)); L.k = k;
+    for (const m of L.mats) if (!L.ringItems) m.opacity = Math.min(1, m.userData.base * k);
     L.tick?.(RM ? t * .3 : t);
     L.g.visible = !pathOnly && !(cur.id === "t_change") && !(cur.ch === "try" && ["t_touch", "t_smell", "t_taste", "t_body", "t_blind"].includes(cur.id) && L.id !== "chem");
   }
@@ -618,7 +629,8 @@ function setCard(html) { cardIn.innerHTML = html; card.classList.remove("hide");
 function setMin(on) { card.classList.toggle("min", on); $("cardT").setAttribute("aria-expanded", !on); $("cardT").textContent = on ? "くわしく" : "たたむ"; requestAnimationFrame(() => { document.documentElement.style.setProperty("--cardh", card.offsetHeight + 8 + "px"); applyOffset(); }); }
 $("cardT").addEventListener("click", () => setMin(!card.classList.contains("min")));
 function cardWorld(w, side) {
-  return `<div class="ck">${esc(NM.ch_world)}・${side ? "裏" : "表"}</div><h2>${esc(w.name)}</h2><p class="lead">${esc(w.card.lead)}</p>
+  const gone = side ? `<ul class="gone" aria-label="人が受けとれない層">${LAYERS.filter(L => !L.human).map(L => `<li><s>${esc(L.name)}</s><span>${esc(WHY[L.id])}</span></li>`).join("")}</ul>` : "";
+  return `<div class="ck">${esc(NM.ch_world)}・${side ? "裏" : "表"}</div><h2>${esc(w.name)}</h2><p class="lead">${esc(w.card.lead)}</p>${gone}
     <div class="full"><ul>${w.card.body.map(b => `<li>${esc(b)}</li>`).join("")}</ul></div><div class="q">${esc(w.card.q)}</div><div class="full">${srcList(w.card.src)}</div>`;
 }
 function cardStage(s) {

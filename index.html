@@ -60,7 +60,13 @@ a{color:var(--aoi-2)}
   padding:2px 7px;border-left:1px solid var(--line);background:rgba(3,8,14,.42);transition:opacity .4s,color .4s;will-change:transform}
 .lb b{font-weight:500;color:var(--ink)}
 .lb i{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--ink-3);margin-left:6px}
-.lb.off{color:var(--ink-3)} .lb.off b{color:var(--ink-3);text-decoration:line-through;text-decoration-color:rgba(200,210,230,.5)}
+.lb .why{display:none}
+.lb.lit{border-left-color:var(--warm);color:var(--ink)} .lb.lit b{color:var(--warm)}
+.lb.off{color:var(--ink-3);border-left:2px solid var(--warm);background:rgba(40,22,8,.55)} .lb.off b{color:var(--warm);text-decoration:line-through;text-decoration-color:var(--warm);text-decoration-thickness:2px}
+.lb.off i{display:none} .lb.off .why{display:inline;margin-left:8px;font-size:12px;color:#f5d9a8}
+#card ul.gone{list-style:none;padding:0;margin:4px 0 10px;display:flex;flex-wrap:wrap;gap:6px}
+#card ul.gone li{font-size:12px;line-height:1.5;padding:4px 8px;border:1px solid rgba(240,194,122,.45);border-radius:6px;background:rgba(240,194,122,.07);color:var(--ink-2)}
+#card ul.gone s{color:var(--warm);text-decoration-thickness:2px;margin-right:6px}
 .lb.gate{pointer-events:auto;cursor:pointer;border:1px solid var(--line);border-radius:3px;transform:translate(-50%,0)}
 .lb.gate.cur{color:var(--ink);border-color:var(--aoi);background:rgba(10,40,56,.62)}
 .pt{position:absolute;left:0;top:0;pointer-events:auto;transform:translate(-50%,-50%);display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink);
@@ -192,6 +198,7 @@ nav#nav button.nb:disabled{opacity:.3}
   #flip button{padding:6px 12px;font-size:12.5px;white-space:nowrap;min-height:32px}
   #card{left:10px;right:10px;width:auto;top:auto;bottom:calc(var(--navh) + 8px + env(safe-area-inset-bottom));max-height:44vh;padding:12px 14px 14px;border-radius:10px}
   #card.min .full{display:none}
+  #card ul.gone{gap:4px;margin:2px 0 6px} #card ul.gone li{font-size:11px;padding:2px 6px} #card.min ul.gone li span{display:none}
   #cardT{display:block;position:absolute;right:8px;top:8px;font-size:12px;color:var(--ink-3);border:1px solid var(--line-2);border-radius:999px;padding:5px 10px;min-height:30px;background:rgba(3,10,18,.6)}
   #card h2{font-size:18px;margin:2px 70px 6px 0}
   #card .q{font-size:14.5px;margin-top:8px}
@@ -210,7 +217,7 @@ nav#nav button.nb:disabled{opacity:.3}
 </head>
 <body>
 <canvas id="cv" aria-hidden="true"></canvas>
-<div id="labels" aria-hidden="true"></div>
+<div id="labels"></div>
 <div id="blank"></div>
 
 <header>
