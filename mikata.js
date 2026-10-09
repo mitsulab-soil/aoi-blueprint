@@ -1,31 +1,44 @@
-/* 碧のミカタ／世界のミカタ（2026-10-08）
-   世界の側 ⇄ 受けとる側（同じ欅の下）／受けとるまで（七つの段を 3D の流れで）／試す（六つの感じ方）／結び。
-   文と台本の正は _dev/script.py（data/script.js）。表示名は names.json。粒・線・木の形は模式。 */
+/* 世界のミカタ（index.html）と、姉妹作の碧のミカタ（aoi.html）の両方を動かす（2026-10-09。body の data-app で切りかえる）
+   世界のミカタ：見えない世界（表と裏・六つのレンズ）／受けとるまで（七つの段を 3D の流れで）／試す（六つの感じ方）／結び。
+   碧のミカタ：同じ欅の下で、碧の耳・目・足もと・胸・手・頭・背中のしるし（前作《Aoi Sense》が土台）。
+   文と台本の正は _dev/script.py（data/script.js）。表示名は names.json。地形と草木は scene.js・nature.js。粒・線・流れの形は模式。 */
 import * as THREE from "three";
+import * as SC from "./scene.js";
 
 const S = window.SCRIPT, NM = S.names, VOICE = window.VOICE || {};
+const APP = document.body.dataset.app === "aoi" ? "aoi" : "world";
 const $ = id => document.getElementById(id);
 const Q = new URLSearchParams(location.search);
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MOBILE = () => innerWidth <= 760;
 const LOWP = Math.min(innerWidth, innerHeight) < 700;
-window.__mk = { ready: false };
+window.__mk = { ready: false, app: APP };
 
-/* ---------------------------------------------------------------- 名前（names.json の一か所から） */
-const titleHTML = `<span>${NM.app}</span><span class="sl">／</span><span class="pair">${NM.app_pair}</span>`;
-$("ttl").innerHTML = titleHTML; $("subt").textContent = NM.sub;
-$("h1").innerHTML = `<span>${NM.app}</span><span class="sl">／</span><br><span class="pair">${NM.app_pair}</span>`;
-$("ssub").textContent = NM.sub;
-document.title = `${NM.title} ── ${NM.sub}`;
-$("fW").textContent = NM.side_world; $("fR").textContent = NM.side_recv;
+/* ---------------------------------------------------------------- 名前（names.json の一か所から）と、姉妹作の切りかえ */
+{
+  const me = APP === "aoi" ? NM.aoi_app : NM.app, sub = APP === "aoi" ? NM.aoi_sub : NM.sub;
+  const sw = (cur, href, name) => cur ? `<span class="on" aria-current="page">${name}</span>` : `<a href="${href}">${name}</a>`;
+  $("ttl").innerHTML = `<nav class="sw" aria-label="姉妹作の切りかえ">${sw(APP === "world", "./", NM.app)}<span class="ar" aria-hidden="true">⇄</span>${sw(APP === "aoi", "aoi.html", NM.aoi_app)}</nav>`;
+  $("subt").textContent = sub;
+  $("h1").innerHTML = `<span>${me}</span>`;
+  $("ssub").textContent = sub;
+  document.title = `${me} ── ${sub}`;
+  $("fW").textContent = NM.side_world; $("fR").textContent = NM.side_recv;
+}
 
 /* ---------------------------------------------------------------- 段の並び */
-const CH = [
+const CH = APP === "aoi" ? [{ id: "aoi", name: NM.ch_aoi }, { id: "aend", name: NM.ch_end }] : [
   { id: "world", name: NM.ch_world }, { id: "path", name: NM.ch_path }, { id: "try", name: NM.ch_try }, { id: "end", name: NM.ch_end },
 ];
-const STEPS = [
+const AOI_ORDER = ["ear", "eye", "foot", "chest", "hand", "mind", "back"];
+const STEPS = APP === "aoi" ? [
+  { ch: "aoi", id: "a_intro", name: NM.ch_aoi },
+  ...AOI_ORDER.map(id => { const p = S.parts.find(x => x.id === id); return { ch: "aoi", id: "a_" + id, name: `${p.name.replace("（ことば）", "")}・${p.does}`, part: p }; }),
+  { ch: "aend", id: "a_end", name: NM.ch_end },
+] : [
   { ch: "world", id: "world", name: NM.side_world },
   { ch: "world", id: "recv", name: NM.side_recv },
+  ...S.lenses.map(l => ({ ch: "world", id: l.id, name: l.name, lens: l })),
   ...S.stages.map((s, i) => ({ ch: "path", id: s.id, name: s.name, stage: i })),
   ...S.trials.map(t => ({ ch: "try", id: t.id, name: `${t.sense}・${t.name}`, trial: t })),
   { ch: "end", id: "end", name: NM.ch_end },
@@ -58,46 +71,15 @@ function ringPts(r, n = 64, y = 0) { const a = []; for (let i = 0; i <= n; i++) 
 function lineOf(pts, c, o = 1) { return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), addMat(c, o)); }
 let rnd = (() => { let s = 20261008; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; })();
 
-/* ---------------------------------------------------------------- 欅の下（世界の場所） */
+/* ---------------------------------------------------------------- 欅の下（世界の場所）＝scene.js（地形・土の断面・草木・生きもの・見えない世界の層） */
 const world = new THREE.Group(); scene.add(world);
-const TREE = V3(-2.3, 0, -1.8);
-/* 地面：遠くへ薄れる格子 */
-{
-  const mat = new THREE.ShaderMaterial({
-    transparent: true, depthWrite: false,
-    vertexShader: "varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-    fragmentShader: `varying vec2 vP;
-      float gl(vec2 p, float s){ vec2 g = abs(fract(p/s - .5) - .5) / fwidth(p/s); return 1.0 - min(min(g.x, g.y), 1.0); }
-      void main(){ float d = length(vP); float a = (gl(vP, .5) * .5 + gl(vP, 2.5) * .5) * smoothstep(9.0, 1.5, d);
-        gl_FragColor = vec4(vec3(.36,.72,.86) * a, a * .55); }`,
-  });
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(22, 22), mat); m.rotation.x = -Math.PI / 2; world.add(m);
-}
-/* 欅（模式）：ほうき形に枝分かれする線と、枝先の葉の粒 */
-const tree = new THREE.Group(); tree.position.copy(TREE); world.add(tree);
-const leafPts = [];
-{
-  const segs = [];
-  const grow = (p, dir, len, depth) => {
-    const q = p.clone().addScaledVector(dir, len); segs.push(p, q);
-    if (depth === 0) { for (let i = 0; i < 9; i++) leafPts.push(q.clone().add(V3((rnd() - .5) * .7, (rnd() - .3) * .5, (rnd() - .5) * .7))); return; }
-    const n = depth > 3 ? 3 : 2;
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2 + rnd() * 1.2, spread = .32 + rnd() * .2;
-      const d = V3(dir.x + Math.cos(a) * spread, dir.y, dir.z + Math.sin(a) * spread).normalize();
-      grow(q, d, len * (.72 + rnd() * .1), depth - 1);
-    }
-  };
-  segs.push(V3(0, 0, 0), V3(0, 1.6, 0));
-  grow(V3(0, 1.6, 0), V3(0, 1, 0), 1.0, 5);
-  const trunk = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(segs), new THREE.LineBasicMaterial({ color: 0x9bb8c8, transparent: true, opacity: .8 }));
-  tree.add(trunk);
-  const lg = new THREE.BufferGeometry().setFromPoints(leafPts);
-  const leaves = new THREE.Points(lg, new THREE.PointsMaterial({ color: COL.leaf, size: LOWP ? 5 : 6, sizeAttenuation: false, map: dot(), transparent: true, opacity: .55, depthWrite: false, blending: THREE.AdditiveBlending }));
-  tree.add(leaves);
-  /* 根もと：土の層（地面の下の線） */
-  for (let k = 1; k <= 3; k++) { const l = lineOf(ringPts(.5 + k * .35, 48, -k * .12), 0x8a6a48, .35 - k * .07); tree.add(l); }
-}
+const TREE = SC.TREE;
+const SCN = SC.buildScene(world);
+const bird = SCN.bird, stone = SCN.stone, bush = SCN.bush;
+world.updateMatrixWorld(true);
+const BIRD = bird.getWorldPosition(new THREE.Vector3()).add(V3(0, .08, 0));
+const STONE = SCN.stone.position.clone();
+const POOL = V3(SC.POND.x, SCN.pondY, SC.POND.z);
 /* 小鳥（模式）：枝先にとまる */
 function birdShape(sc = 1) {
   const g = new THREE.Group();
@@ -109,28 +91,6 @@ function birdShape(sc = 1) {
   g.add(lineOf([V3(0, -.065 * sc, 0), V3(-.01 * sc, -.11 * sc, 0)], COL.pale, .7)); g.add(lineOf([V3(.03 * sc, -.06 * sc, 0), V3(.03 * sc, -.11 * sc, 0)], COL.pale, .7));
   return g;
 }
-const BIRD = V3(-1.25, 3.05, -1.2);
-const bird = birdShape(2.2); bird.position.copy(BIRD); world.add(bird);
-/* 石（日なた） */
-const STONE = V3(1.55, .2, .5);
-const stone = new THREE.Group(); stone.position.copy(STONE); world.add(stone);
-{
-  const geo = new THREE.IcosahedronGeometry(.36, 1); const p = geo.attributes.position;
-  for (let i = 0; i < p.count; i++) p.setXYZ(i, p.getX(i) * 1.25, p.getY(i) * .62, p.getZ(i));
-  stone.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0x5e6a76, roughness: .9, flatShading: true })));
-  stone.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 20), new THREE.LineBasicMaterial({ color: 0x9fb4c6, transparent: true, opacity: .45 })));
-}
-/* 茂み（変化の見落としの試しに使う） */
-const BUSH = V3(2.5, .32, -1.3);
-const bush = new THREE.Group(); bush.position.copy(BUSH); world.add(bush);
-{
-  const pts = []; for (let i = 0; i < 260; i++) { const u = rnd() * Math.PI * 2, v = Math.acos(2 * rnd() - 1), r = .45 * Math.cbrt(rnd()); pts.push(V3(Math.sin(v) * Math.cos(u) * r * 1.3, Math.abs(Math.cos(v)) * r, Math.sin(v) * Math.sin(u) * r)); }
-  bush.add(new THREE.Points(new THREE.BufferGeometry().setFromPoints(pts), new THREE.PointsMaterial({ color: 0x7fd09a, size: 7, sizeAttenuation: false, map: dot(), transparent: true, opacity: .8, depthWrite: false })));
-}
-/* 水たまり（聴く試しの水のしずく） */
-const POOL = V3(1.0, .01, 1.7);
-const pool = lineOf(ringPts(.42, 40), 0x6fb8d8, .5); pool.position.copy(POOL); world.add(pool);
-
 /* ---- 物理の層（世界の側）。human＝人の感覚が受けとるか ---- */
 const LAYERS = [];
 function layer(id, name, human, note, anchor) { const g = new THREE.Group(); world.add(g); const L = { id, name, human, note, anchor, g, k: 1, mats: [] }; LAYERS.push(L); return L; }
@@ -204,7 +164,7 @@ const Lheat = layer("heat", "日なたの石の熱", true, "肌が温かさと�
 }
 /* ふるえ：足音から広がる地面の波 */
 const Lvib = layer("vib", "足もとのふるえ", true, "足の裏が受けとる", V3(.4, .45, 2.4));
-rings(Lvib, V3(.2, .02, 2.2), 4, 2.4, 1.6, COL.vib, .7, false, false);
+rings(Lvib, V3(.2, SC.H(.2, 2.2) + .03, 2.2), 4, 2.4, 1.6, COL.vib, .7, false, false);
 /* 磁場：場所を貫く大きな弧（人は受けとらない） */
 const Lmag = layer("mag", "地球の磁場", false, "渡り鳥の手がかり", V3(-4.2, 2.6, 2.4));
 {
@@ -226,7 +186,7 @@ function pose(t) {
   if (!vrm) return;
   const br = RM ? 0 : Math.sin(t * 2 * Math.PI / 4.6);
   const set = (n, x, y, z) => { const b = N(n); if (b) b.rotation.set(x, y, z); };
-  /* 腕の休め＝02_開発中/01_碧/02_碧の身体/aoi_pose.js の写し（前腕 Y：左は負・右は正） */
+  /* 腕の休め＝02_プロジェクト/02_プロジェクト/02_開発中/01_碧/02_碧の身体/aoi_pose.js の写し（前腕 Y：左は負・右は正） */
   set("leftUpperArm", -.12, 0, -1.28); set("rightUpperArm", -.12, 0, 1.28);
   set("leftLowerArm", 0, -.28, 0); set("rightLowerArm", 0, .28, 0);
   set("spine", -.006 * br, 0, 0); set("chest", -.012 * br, 0, 0); set("upperChest", -.01 * br, 0, 0);
@@ -462,26 +422,26 @@ for (const L of LAYERS) { L.label = mkLabel(`<b>${L.name}</b><i>${L.note}</i>${L
 const gateLabels = S.stages.map((s, i) => { const L = mkLabel(`<span style="font-family:var(--mono);color:var(--ink-3);margin-right:6px">${s.no}</span>${s.name}`, "gate", () => V3(GX[i], PY - (gates[i].r || 1.4) - .35, PZ), () => go(STEPS.findIndex(x => x.id === s.id))); L.grp = "path"; return L; });
 const partBtns = S.parts.map(p => {
   const el = document.createElement("button"); el.className = "pt"; el.textContent = `${p.name.replace("（ことば）", "")}　${p.does}`; el.setAttribute("aria-label", `${p.name}：${p.does}`);
-  el.addEventListener("click", e => { e.stopPropagation(); openPart(p.id); }); labelsEl.appendChild(el);
+  el.addEventListener("click", e => { e.stopPropagation(); if (APP === "aoi") go(STEPS.findIndex(x => x.id === "a_" + p.id)); else openPart(p.id); }); labelsEl.appendChild(el);
   return { el, id: p.id };
 });
 const _v = new THREE.Vector3();
 function toScreen(v, W, H) { _v.copy(v).project(camera); return [(_v.x * .5 + .5) * W, (-_v.y * .5 + .5) * H, _v.z < 1 && _v.z > -1]; }
 function updateLabels() {
   const W = innerWidth, H = innerHeight;
-  const inWorld = cur.ch === "world" || cur.ch === "end";
+  const inWorld = APP === "world" && (cur.id === "world" || cur.id === "recv");
   const cr = card.classList.contains("hide") ? null : card.getBoundingClientRect();
   for (const L of LB) {
-    const vis = (L.grp === "world" && inWorld && cur.id !== "end") || (L.grp === "path" && cur.ch === "path");
+    const vis = (L.grp === "world" && inWorld) || (L.grp === "path" && cur.ch === "path") || L.grp === "lens";
     if (!vis) { if (L.el.style.display !== "none") L.el.style.display = "none"; continue; }
     const [x, y, ok] = toScreen(L.anchorFn(), W, H);
     const hw = L.grp === "path" ? 50 : 90;
-    if (!ok || x < hw || x > W - hw || y < (MOBILE() ? 215 : 110) || y > H - 120 || (cr && x + hw > cr.left && y > cr.top - 10 && y < cr.bottom + 30)) { L.el.style.display = "none"; continue; }
+    if (!ok || x < hw || x > W - hw || y < (MOBILE() ? 215 : $("hud").classList.contains("show") ? 165 : 110) || y > H - 120 || (cr && x + hw > cr.left && y > cr.top - 10 && y < cr.bottom + 30)) { L.el.style.display = "none"; continue; }
     L.el.style.display = ""; L.el.style.transform = `translate(${x}px,${y}px) translate(-50%,${L.grp === "path" ? "0" : "-100%"})`;
   }
   for (const L of LAYERS) { L.label.el.classList.toggle("off", flipK > .35 && !L.human); L.label.el.classList.toggle("lit", flipK > .05 && flipK < .35 && !L.human); }
   for (let i = 0; i < gateLabels.length; i++) gateLabels[i].el.classList.toggle("cur", cur.stage === i);
-  const showParts = cur.id === "recv" && vrm;
+  const showParts = (cur.id === "recv" || cur.id === "a_intro") && vrm;
   for (const b of partBtns) {
     const a = partAnch[b.id];
     if (!showParts || !a) { b.el.style.display = "none"; continue; }
@@ -509,6 +469,15 @@ function view(id) {
     case "body": return [V3(.9, 1.3, 2.4 * (m ? 1.3 : 1)), V3(0, 1.05, 0)];
     case "end": return [V3(4.6 * far, 3.2 * far, 8.4 * far), V3(-.6, 1.6, -.8)];
   }
+  const fr = (p, t) => [t.clone().add(p.clone().sub(t).multiplyScalar(far)), t];
+  const VV = {
+    lens_uv: m ? [V3(4.6, 2.2, 6.4), V3(2.6, 1.3, -.3)] : [V3(4.9, 2.3, 5.6), V3(1.4, 1.5, -.5)], lens_ir: [V3(3.6, 3.2, 7.4), V3(0, 1.4, -.4)], lens_dusk: [V3(5.2, 3.0, 7.6), V3(-.3, 2.0, -.2)],
+    lens_water: [V3(9.4, 2.6, 12.2), V3(.4, -1.2, .3)], lens_air: [V3(9.5, 6.8, 13.5), V3(0, 2.0, -1)], lens_life: [V3(6.4, 1.4, 10.4), V3(-1.4, -.9, -.6)],
+    a_intro: [V3(1.3, 1.6, 3.8), V3(0, 1.15, 0)], a_ear: [V3(2.6, 2.2, 3.6), V3(-.4, 1.9, -.4)], a_eye: m ? [V3(4.6, 2.2, 6.4), V3(2.4, 1.3, -.3)] : [V3(4.9, 2.3, 5.6), V3(1.2, 1.5, -.5)],
+    a_foot: [V3(10, 9.5, 14.5), V3(0, 2.6, -1)], a_chest: [V3(8.4, 6.4, 12.4), V3(0, .4, -1)], a_hand: [V3(1.4, 1.8, 5.2), V3(-.7, 1.2, 1.6)],
+    a_mind: [V3(.5, 1.6, 2.4), V3(0, 1.55, 0)], a_back: [V3(-.7, 1.5, -2.4), V3(0, 1.25, 0)], a_end: [V3(4.6, 3.2, 8.4), V3(-.6, 1.6, -.8)],
+  };
+  if (VV[id]) return fr(VV[id][0], VV[id][1]);
   if (id.startsWith("stage")) {
     const i = +id.slice(5), x = GX[i];
     if (asp < .75) {   /* 縦長：流れの奥へ向かって見る（いまの門が手前、次の段が奥に） */
@@ -588,7 +557,7 @@ function updateLayers(t, dt) {
     const f = flipK, k = L.human ? 1 : f < .35 ? 1 + 1.3 * (f / .35) : Math.max(.08, 2.3 * (1 - (f - .35) / .6)); L.k = k;
     for (const m of L.mats) if (!L.ringItems) m.opacity = Math.min(1, m.userData.base * k);
     L.tick?.(RM ? t * .3 : t);
-    L.g.visible = !pathOnly && !(cur.id === "t_change") && !(cur.ch === "try" && ["t_touch", "t_smell", "t_taste", "t_body", "t_blind"].includes(cur.id) && L.id !== "chem");
+    L.g.visible = APP === "world" && !cur.lens && !pathOnly && !(cur.id === "t_change") && !(cur.ch === "try" && ["t_touch", "t_smell", "t_taste", "t_body", "t_blind"].includes(cur.id) && L.id !== "chem");
   }
   if (cur.id === "t_smell") Lchem.g.visible = true;
   if (cur.id === "t_hear") for (const L of LAYERS) L.g.visible = L.id === "aud";
@@ -647,7 +616,7 @@ function openPart(id) {
   const p = S.parts.find(x => x.id === id); if (!p) return; openPartId = id;
   setCard(`<button class="back" id="pBack">← ${esc(NM.side_recv)}へ</button><div class="ck">碧の${esc(p.name)}・${esc(p.q)}</div><h2>${esc(p.does)}</h2>
     <p class="lead">${esc(p.act)}</p><div class="full"><div class="row aoi"><span class="k">技術</span>${esc(p.tech)}</div>
-    <div class="row"><span class="k">移せないもの</span>${esc(p.cannot)}</div>${linksOf(p.links)}${srcList(p.src)}</div>`);
+    <div class="row"><span class="k">移せないもの</span>${esc(p.cannot)}</div>${linksOf(p.links)}${srcList(p.src)}</div><div class="links"><a href="aoi.html#a_${id}">${esc(NM.aoi_app)}で、くわしく →</a></div>`);
   setMin(false);
   $("pBack").addEventListener("click", () => { openPartId = null; enter(false); });
   const a = partAnch[id];
@@ -810,8 +779,95 @@ function trialBody(t) {
   });
 }
 
+/* ---------------------------------------------------------------- 見えない世界（レンズ）と、碧の側の見せ方 */
+const LMODE = { uv: 1, ir: 2, dusk: 3 };
+const hemi = scene.children.find(o => o.isHemisphereLight);
+let mixGoal = 0, xray = 0, xrayGoal = 0, duskK = 0, duskGoal = 0, coreK = 0, coreGoal = 0, waterK = 0, waterGoal = 0;
+const LEG = {
+  uv: `紫外線 → <b style="color:#c9a8ff">紫と白</b>に置きかえ<br>明るい＝紫外を多く返す`,
+  ir: `温度 → 色に置きかえ（相対）<br><span style="display:inline-block;width:150px;height:8px;border-radius:4px;background:linear-gradient(90deg,#05051f,#40108c,#d9263f,#ff9e1a,#fffad9);vertical-align:middle"></span><br>冷たい　　　　　　　温かい`,
+  dusk: `超音波の反響 → 光の輪<br>音の速さは何十分の一に／音は高さを下げて作り直し`,
+  water: `地下水面＝青い面<br>流れは何万倍にも早めている`,
+  air: `風＝線（明るいほど速い）・水蒸気＝霞<br>気圧の面＝4 m ごと`,
+  life: `根・菌糸・細菌などの数と太さは模式<br>光の粒＝根と菌のやりとり`,
+  dem: `高さ ×3（上の網）・黄＝5 m の格子<br>地面の等高線＝20 cm ごと`,
+};
+function lensOf(s) {
+  if (s.lens) return s.lens.lens;
+  return { a_ear: "dusk", a_eye: "uv", a_foot: "dem", a_chest: "records", a_hand: "core" }[s.id] || null;
+}
+/* レンズのラベル（その段だけ） */
+let lensLB = [];
+function setLensLabels(list) {
+  for (const L of lensLB) { L.el.remove(); LB.splice(LB.indexOf(L), 1); } lensLB = [];
+  for (const [t, at] of list || []) {
+    const fn = t.startsWith("雌の翅") ? () => SCN.nat.butterflies[0].position.clone().add(V3(0, .12, 0)) : at ? (() => { const v = V3(...at); return () => v; })() : t === "コウモリ" ? () => SCN.batPos || V3(0, 3, 0) : t === "蛾" ? () => SCN.moth.position : () => V3(0, 2, 0);
+    const L = mkLabel(`<b>${esc(t)}</b>`, "lens", fn, null); L.grp = "lens"; lensLB.push(L);
+  }
+}
+/* 碧の耳：細かい波（高い音）が、ゆったりした波（下げた音）になる */
+const earWave = new THREE.Group(); scene.add(earWave); earWave.visible = false;
+const ewIn = new THREE.Line(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 241 }, () => V3())), addMat(0xa98cff, .95));
+const ewOut = new THREE.Line(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 121 }, () => V3())), addMat(0xa6e4f2, .95));
+earWave.add(ewIn, ewOut);
+function tickEar(t) {
+  if (!earWave.visible || !partAnch.ear || !SCN.batPos) return;
+  const e = wposOf(partAnch.ear), a = SCN.batPos.clone(), up = V3(0, 1, 0);
+  const pi = ewIn.geometry.attributes.position, po = ewOut.geometry.attributes.position;
+  for (let i = 0; i <= 240; i++) { const u = i / 240, q = a.clone().lerp(e, u); q.addScaledVector(up, Math.sin(u * 140 - t * 40) * .06 * (1 - u * .4)); pi.setXYZ(i, q.x, q.y, q.z); }
+  const dir = camera.position.clone().sub(e).normalize().multiplyScalar(.9).add(V3(.5, -.15, 0)), b = e.clone().add(dir);
+  for (let i = 0; i <= 120; i++) { const u = i / 120, q = e.clone().lerp(b, u); q.addScaledVector(up, Math.sin(u * 14 - t * 4) * .06); po.setXYZ(i, q.x, q.y, q.z); }
+  pi.needsUpdate = po.needsUpdate = true;
+}
+/* 超音波の声（人に聞こえる高さへ下げて作り直した音） */
+function batClick() {
+  if (!voiceOn || !started) return; const a = ac(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain(); o.frequency.setValueAtTime(3400, a.currentTime); o.frequency.exponentialRampToValueAtTime(1900, a.currentTime + .025);
+  g.gain.setValueAtTime(.0001, a.currentTime); g.gain.linearRampToValueAtTime(.05, a.currentTime + .004); g.gain.exponentialRampToValueAtTime(.0001, a.currentTime + .03);
+  o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime + .04);
+}
+let lensNow = null;
+function setLens(s) {
+  const ln = lensOf(s); lensNow = ln;
+  mixGoal = LMODE[ln] || ln === "dem" ? 1 : 0;
+  if (LMODE[ln]) SC.G.uMode.value = LMODE[ln]; else if (ln === "dem") SC.G.uMode.value = 4;
+  xrayGoal = ln === "water" || ln === "life" ? 1 : 0; waterGoal = ln === "water" ? 1 : 0;
+  duskGoal = ln === "dusk" ? 1 : 0; coreGoal = ln === "core" ? 1 : 0;
+  const Ls = SCN.layers;
+  Ls.water.visible = ln === "water"; Ls.air.visible = ln === "air"; Ls.life.visible = ln === "life"; Ls.dusk.visible = ln === "dusk";
+  Ls.dem.visible = ln === "dem"; Ls.records.visible = ln === "records"; Ls.core.visible = ln === "core";
+  earWave.visible = s.id === "a_ear";
+  setLensLabels(s.lens ? s.lens.labels : s.id === "a_mind" ? [["典拠に照らす", [-.55, 2.05, .1]], ["断定しない", [.55, 1.95, .1]], ["分からないことは、分からないと言う", [0, 2.3, 0]], ["会話は保存しない", [.1, 1.05, .5]]]
+    : s.id === "a_chest" ? [["記録の点（模式）", [-2.5, 1.6, 2.5]], ["記録がない＝いない、ではない", [SCN.emptyAt.x, SCN.emptyAt.y + .5, SCN.emptyAt.z]]]
+    : s.id === "a_hand" ? [["土の柱", [-.9, 2.4, 1.6]], ["DNA", [-.3, 2.6, 1.6]]] : s.id === "a_ear" ? [["コウモリ", null]] : null);
+  const leg = LEG[ln]; $("hud").innerHTML = leg || ""; $("hud").classList.toggle("show", !!leg || s.ch === "path");
+}
+function tickLens(dt, t) {
+  const k = RM ? 1 : Math.min(1, dt * 2.2);
+  SC.G.uMix.value += (mixGoal - SC.G.uMix.value) * k; SC.G.uTime.value = t;
+  if (mixGoal === 0 && SC.G.uMix.value < .01) SC.G.uMode.value = 0;
+  xray += (xrayGoal - xray) * k; duskK += (duskGoal - duskK) * k; coreK += (coreGoal - coreK) * k; waterK += (waterGoal - waterK) * k;
+  const sm = SCN.surface.material; sm.opacity = 1 - .84 * xray; sm.depthWrite = xray < .05;
+  SCN.soilMat.uniforms.uAlpha.value = 1 - .66 * xray + .3 * waterK; SCN.soilMat.uniforms.uWater.value = waterK; SCN.soilMat.depthWrite = xray < .05;
+  SCN.litter.visible = xray < .5; SCN.nat.grass.visible = xray < .5;
+  if (SCN.wSheet) SCN.wSheet.material.uniforms.uK.value = waterK;
+  hemi.intensity = 1.15 * (1 - .72 * duskK); sun.intensity = 2.1 * (1 - .8 * duskK); rim.intensity = 1.1 * (1 - .5 * duskK);
+  const Ls = SCN.layers;
+  if (Ls.water.visible) SCN.tickWater(RM ? dt * .3 : dt);
+  if (Ls.air.visible) SCN.tickAir(RM ? dt * .3 : dt, t);
+  if (Ls.life.visible) SCN.tickLife(RM ? dt * .3 : dt);
+  if (Ls.dusk.visible) { SCN.tickDusk(dt, t); if (SCN.callNow) batClick(); }
+  if (Ls.core.visible || coreK > .01) SCN.tickCore(coreK, t);
+  tickEar(t);
+  /* 蝶：花壇のまわりをひらひら */
+  for (const b of SCN.nat.butterflies) { const ph = b.userData.ph, a = t * .5 + ph; b.position.set(3.5 + Math.cos(a) * 1.1, 1.0 + Math.sin(t * 1.3 + ph) * .25, .1 + Math.sin(a * 1.3) * .9); b.rotation.y = -a; const f = Math.sin(t * 14 + ph) * .9; b.userData.pl.rotation.z = f; b.userData.pr.rotation.z = -f; }
+  const bee = SCN.nat.bee; if (bee) { bee.position.set(3.55 + Math.sin(t * .9) * .15, 1.45 + Math.sin(t * 2.3) * .04, -.75 + Math.cos(t * .7) * .12); if (bee.userData.L) { bee.userData.L.rotation.z = Math.sin(t * 60) * .6; bee.userData.Rw.rotation.z = -Math.sin(t * 60) * .6; } }
+}
+
 /* ---------------------------------------------------------------- 段へ入る */
 function viewOf(s) {
+  if (s.lens) return "lens_" + s.lens.lens;
+  if (APP === "aoi") return s.id;
   if (s.ch === "world") return s.id;
   if (s.ch === "path") return "stage" + s.stage;
   if (s.ch === "end") return "end";
@@ -821,9 +877,9 @@ function enter(speak = true) {
   clearTrial(); ctlSet(""); openPartId = null;
   const s = cur;
   flipGoal = s.id === "recv" ? 1 : 0;
-  $("flip").classList.toggle("show", s.ch === "world");
+  $("flip").classList.toggle("show", s.id === "world" || s.id === "recv");
   $("fW").setAttribute("aria-pressed", s.id === "world"); $("fR").setAttribute("aria-pressed", s.id === "recv");
-  $("hud").classList.toggle("show", s.ch === "path");
+  setLens(s);
   for (const b of $("tabs").children) b.setAttribute("aria-selected", b.dataset.ch === s.ch);
   $("where").innerHTML = `<span class="n">${String(si + 1).padStart(2, "0")}／${STEPS.length}</span>${esc(s.name)}`;
   $("prev").disabled = si === 0; $("next").disabled = si === STEPS.length - 1;
@@ -831,6 +887,28 @@ function enter(speak = true) {
   let lines = [];
   if (s.id === "world") { setCard(cardWorld(S.world, 0)); lines = (firstWorld && started && speak ? S.intro : []).concat(S.world.lines); if (started && speak) firstWorld = false; }
   else if (s.id === "recv") { setCard(cardWorld(S.recv, 1)); lines = S.recv.lines; }
+  else if (s.lens) {
+    const l = s.lens; setCard(`<div class="ck">${esc(NM.ch_world)}・${esc(l.name)}</div><h2>${esc(l.title)}</h2><p class="lead">${esc(l.lead)}</p>
+      <div class="full"><ul>${l.body.map(b => `<li>${esc(b)}</li>`).join("")}</ul></div><div class="q">${esc(l.q)}</div><div class="full">${srcList(l.src)}</div>`);
+    lines = l.lines;
+    ctlSet(S.lenses.map(x => `<button data-l="${x.id}" aria-pressed="${x.id === l.id}">${esc(x.name.replace(/のつながりを見ると|で見ると|で聴くと|を見ると/, ""))}</button>`).join(""));
+    for (const b of ctl.querySelectorAll("button")) b.addEventListener("click", () => go(STEPS.findIndex(x => x.id === b.dataset.l)));
+  }
+  else if (s.id === "a_intro") {
+    const A = S.aoi.intro; setCard(`<div class="ck">${esc(NM.aoi_app)}</div><h2>${esc(A.name)}</h2><p class="lead">${esc(A.lead)}</p>
+      <div class="full"><div class="row aoi"><span class="k">越えない線</span>${A.body.map(esc).join("／")}</div><p class="lead" style="margin-top:8px">体の印を押すと、その働きへ。</p></div><div class="q">${esc(A.q)}</div>`);
+    lines = A.lines;
+  }
+  else if (s.part) {
+    const p = s.part; setCard(`<div class="ck">${esc(NM.aoi_app)}・${esc(p.name)}・${esc(p.q)}</div><h2>${esc(p.does)}</h2><p class="lead">${esc(p.act)}</p>
+      <div class="full"><div class="row aoi"><span class="k">技術</span>${esc(p.tech)}</div>${linksOf(p.links)}${srcList(p.src)}</div><div class="q"><span style="font-size:12px;color:var(--ink-3);display:block;font-family:var(--sans)">まだ移せないもの</span>${esc(p.cannot)}</div>`);
+    lines = S.aoi.parts[p.id] || p.lines;
+  }
+  else if (s.id === "a_end") {
+    setCard(`<div class="ck">${esc(NM.ch_end)}</div><h2>受けとれないものがある、と知ること</h2><div class="full"><p class="lead">${S.aoi.end.lines.map(esc).join("<br>")}</p></div>
+      <div class="q">${esc(NM.app)}へもどって、同じ欅の下を見てみる。</div><div class="links"><a href="./#world">${esc(NM.app)}へ →</a></div><div class="full" style="margin-top:12px"><button class="back" id="eRefs">典拠とつくり</button></div><p style="font-size:11px;color:var(--ink-3);margin:10px 0 0;line-height:1.6">© 2026 mitsulab. All rights reserved.　<a href="https://mitsulab.jp/terms/#ai" target="_blank" rel="noopener">利用規約</a></p>`);
+    $("eRefs")?.addEventListener("click", openRefs); lines = S.aoi.end.lines;
+  }
   else if (s.ch === "path") {
     const st = S.stages[s.stage]; setCard(cardStage(st)); lines = st.lines;
     if (s.stage === 3) { ctlSet(`<span class="lab">注意を向ける</span>` + S.attn.map(a => `<button data-a="${a.id}" aria-pressed="${a.id === attn}">${esc(a.name)}</button>`).join(""));
@@ -840,7 +918,7 @@ function enter(speak = true) {
     const t = s.trial; setCard(cardTrial(t)); lines = t.lines;
     ({ blind: trialBlind, change: trialChange, hear: trialHear, touch: trialTouch, smell: trialSmell, taste: trialTaste, body: trialBody })[t.kind](t);
   } else if (s.ch === "end") {
-    setCard(`<div class="ck">${esc(NM.ch_end)}</div><h2>${esc(NM.app_pair)}は、一つではない</h2><div class="full"><p class="lead">${S.end.lines.map(esc).join("<br>")}</p></div>
+    setCard(`<div class="ck">${esc(NM.ch_end)}</div><h2>世界のミカタは、一つではない</h2><div class="full"><p class="lead">${S.end.lines.map(esc).join("<br>")}</p></div>
       <div class="q">${esc(S.end.lines[S.end.lines.length - 1])}</div>${linksOf(["hikawa", "shinra", "hp"])}<div class="full" style="margin-top:12px"><button class="back" id="eRefs">典拠とつくり</button></div><p style="font-size:11px;color:var(--ink-3);margin:10px 0 0;line-height:1.6">© 2026 mitsulab. All rights reserved.　<a href="https://mitsulab.jp/terms/#ai" target="_blank" rel="noopener">利用規約</a></p>`);
     $("eRefs")?.addEventListener("click", openRefs); lines = S.end.lines;
   }
@@ -859,18 +937,18 @@ addEventListener("keydown", e => {
   if (!started) return;
   if (e.target.tagName === "INPUT") return;
   if (e.key === "ArrowRight") go(si + 1); else if (e.key === "ArrowLeft") go(si - 1);
-  else if (/^[1-4]$/.test(e.key)) go(STEPS.findIndex(s => s.ch === CH[+e.key - 1].id));
+  else if (/^[1-4]$/.test(e.key) && CH[+e.key - 1]) go(STEPS.findIndex(s => s.ch === CH[+e.key - 1].id));
   else if (e.key === "Escape" && openPartId) { openPartId = null; enter(false); }
 });
 
 /* 典拠とつくり */
 function openRefs() {
   const used = new Set(); const add = ks => (ks || []).forEach(k => used.add(k));
-  add(S.world.card.src); add(S.recv.card.src); S.stages.forEach(s => add(s.src)); S.trials.forEach(t => add(t.src)); S.parts.forEach(p => add(p.src));
+  if (APP === "aoi") S.parts.forEach(p => add(p.src)); else { add(S.world.card.src); add(S.recv.card.src); S.lenses.forEach(l => add(l.src)); S.stages.forEach(s => add(s.src)); S.trials.forEach(t => add(t.src)); S.parts.forEach(p => add(p.src)); }
   $("refsIn").innerHTML = `<h3>典拠</h3><ol>${[...used].map(k => `<li>${esc(S.refs[k])}</li>`).join("")}</ol>
-    <h3>見せ方</h3><p>粒・線・木・鳥・脳へ向かう流れの形は、模式です。粒の数は実際の量ではありません。数は教科書・総説の目安で、幅のあるものは幅のまま書いています。予測としての知覚は、有力な説として紹介しています。</p>
-    <h3>つくり</h3><p>碧の声：VOICEVOX:冥鳴ひまり。試すところの音は、その場で作る音です。碧の 3D の姿は © mitsulab。three.js（MIT）・three-vrm（MIT）。記録は保存しません。</p>
-    <p>${esc(NM.title)} ── mitsulab　<a href="https://mitsulab.jp/" target="_blank" rel="noopener">mitsulab.jp ↗</a></p>
+    <h3>見せ方</h3><p>粒・線・流れ・根・菌糸・土の層と地下水面の形は、模式です。紫外線・赤外線・超音波・水蒸気は、見える色・光・霞・聞こえる音に置きかえています。粒の数は実際の量ではありません。数は教科書・総説の目安で、幅のあるものは幅のまま書いています。予測としての知覚は、有力な説として紹介しています。</p>
+    <h3>つくり</h3><p>碧の声：VOICEVOX:冥鳴ひまり。試すところと超音波の音は、その場で作る音です。石・樹皮・地面・落ち葉・土の質感は Poly Haven の CC0 の写真（Rock Surface・Lichen Rock・Japanese Zelkova Bark・Grass Ground・Dry Decay Leaves・Forest Ground 04）。碧の 3D の姿は © mitsulab。three.js（MIT）・three-vrm（MIT）。記録は保存しません。</p>
+    <p>${esc(APP === "aoi" ? NM.aoi_app : NM.app)} ── mitsulab　<a href="https://mitsulab.jp/" target="_blank" rel="noopener">mitsulab.jp ↗</a></p>
     <h3>著作権</h3><p>© 2026 mitsulab. All rights reserved. この作品の文章・画像・音声・3D・プログラムの著作権は、別に示した他者の素材を除き mitsulab にあります。無断の複製・転載・改変と、AI の学習・生成への利用はお断りします（テキスト・データマイニングの権利を留保します）。　<a href="https://mitsulab.jp/terms/#ai" target="_blank" rel="noopener">利用規約 ↗</a></p>
     <p lang="en">© 2026 mitsulab. All rights reserved. Copyright in the text, images, audio, 3D and software of this work belongs to mitsulab, except third-party materials credited separately. Copying, reposting or modifying them without permission, and using them for AI training or generation, are not permitted. Text and data mining rights are reserved.　<a href="https://mitsulab.jp/terms/#ai-en" target="_blank" rel="noopener">Terms ↗</a></p>`;
   $("refs").classList.add("show"); $("refsX").focus();
@@ -893,13 +971,12 @@ function loop() {
   placeCam(dt);
   updateLayers(T, dt);
   if (cur.ch === "path") { stepParticles(dt, T); updHud(dt); }
-  tickChange(dt); tickHear();
+  tickChange(dt); tickHear(); tickLens(dt, T);
   if (vrm) {
     pose(T); blink(dt);
-    lookT.position.lerp(cur.id === "world" ? V3(BIRD.x, BIRD.y, BIRD.z) : camera.position, Math.min(1, dt * 3));
+    lookT.position.lerp(cur.id === "world" || cur.lens ? V3(BIRD.x, BIRD.y, BIRD.z) : cur.id === "a_ear" && SCN.batPos ? SCN.batPos : camera.position, Math.min(1, dt * 3));
     vrm.update(dt);
   }
-  bird.rotation.z = Math.sin(T * 3) * .04;
   world.visible = cur.ch !== "path" || camera.position.z > PZ / 2;
   path.visible = cur.ch === "path" || camera.position.z < PZ / 2;
   renderer.render(scene, camera);

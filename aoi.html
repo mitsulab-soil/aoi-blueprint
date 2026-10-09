@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>世界のミカタ ── 見えない世界と、受けとるしくみ</title>
-<meta name="description" content="世界のミカタ。欅の木の下の小さな地形を、紫外線・赤外線・超音波・地下水・大気・土の中のつながりで見ると、どんな世界があるか。世界から届くものが、感覚器・信号・注意・記憶と予測・処理の容量をへて意味になるまでを 3D で。見る・聴く・ふれる・嗅ぐ・味わう・体の内側を、自分で試す。姉妹作＝碧のミカタ。mitsulab">
-<meta property="og:title" content="世界のミカタ（mitsulab）">
-<meta property="og:description" content="紫外線で花の的、赤外線で体の熱と葉の涼しさ、超音波で夜の声の地図、足もとを流れる地下水、見えない空気の流れ、根と菌のやりとり。届いたもののほんの一部が意味になるまでを 3D で。">
+<title>碧のミカタ ── 碧は、何を受けとり、どう手渡すか</title>
+<meta name="description" content="碧のミカタ。人と自然のあいだに立つ依代・碧（あおい）が、耳・目・足もと・胸・手・頭で何を受けとり、どう手渡すか。それぞれの技術と、まだ移せないもの。姉妹作＝世界のミカタ（同じ欅の下）。mitsulab">
+<meta property="og:title" content="碧のミカタ（mitsulab）">
+<meta property="og:description" content="碧の耳・目・足もと・胸・手・頭。何を受けとり、どう手渡すか。そして、まだ移せないもの。">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://mitsulab-soil.github.io/aoi-blueprint/">
+<meta property="og:url" content="https://mitsulab-soil.github.io/aoi-blueprint/aoi.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#03070d">
 <meta name="tdm-reservation" content="1">
@@ -22,10 +22,10 @@
   ・碧の声＝VOICEVOX:冥鳴ひまり（字幕＝声の文）。試すところの音は、その場で作る音だけ。
   ・three@0.170.0 と @pixiv/three-vrm@3.5.5 は jsDelivr の版固定。
 -->
-<link rel="icon" href="favicon/favicon.ico" sizes="any">
-<link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="favicon/apple-touch-icon.png">
-<link rel="manifest" href="favicon/manifest.webmanifest">
+<link rel="icon" href="favicon_aoi/favicon.ico" sizes="any">
+<link rel="icon" href="favicon_aoi/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="favicon_aoi/apple-touch-icon.png">
+<link rel="manifest" href="favicon_aoi/manifest.webmanifest">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -223,7 +223,7 @@ nav#nav button.nb:disabled{opacity:.3}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
-<body>
+<body data-app="aoi">
 <canvas id="cv" aria-hidden="true"></canvas>
 <div id="labels"></div>
 <div id="blank"></div>
@@ -256,10 +256,10 @@ nav#nav button.nb:disabled{opacity:.3}
   <div class="in">
     <h1 id="h1"></h1>
     <div class="s" id="ssub"></div>
-    <p id="spara">欅の木の下の、小さな地形。<br>紫外線・赤外線・超音波・地下水・大気・土の中のつながり。<br>人には見えない世界と、それを受けとって意味にするしくみを、<br>碧と一緒にたどります。</p>
+    <p id="spara">世界のミカタと同じ、欅の木の下。<br>今度は、碧の側から。<br>耳・目・足もと・胸・手・頭で、何を受けとり、どう手渡すか。<br>そして、まだ移せないもの。</p>
     <div class="bt"><button class="p" id="go" disabled>はじめる（声が出ます）</button><button id="goQ" disabled>声なしで</button></div>
     <div class="ld" id="ld">碧を呼んでいます…</div>
-    <div class="ops">押して進む・ドラッグで見回す・← → で進む／もどる・1〜4 で章</div>
+    <div class="ops">押して進む・体の印を押す・ドラッグで見回す・← → で進む／もどる</div>
   </div>
 </div>
 
