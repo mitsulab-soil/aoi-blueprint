@@ -1,6 +1,6 @@
-/* 世界のミカタ（index.html）と、姉妹作の碧のミカタ（aoi.html）の両方を動かす（2026-10-09。body の data-app で切りかえる）
-   世界のミカタ：見えない世界（表と裏・六つのレンズ）／受けとるまで（七つの段を 3D の流れで）／試す（六つの感じ方）／結び。
-   碧のミカタ：同じ欅の下で、碧の耳・目・足もと・胸・手・頭・背中のしるし（前作《Aoi Sense》が土台）。
+/* 世界のミカタの一つの旅（2026-10-10 統合版。aoi.html は旧リンクからの案内）。
+   見えない世界／環世界／碧の受けとり方／受けとるまで／試す／結び。
+   碧の耳・目・足もと・胸・手・頭・背中のしるしは同じ欅の下の一章（前作《Aoi Sense》が土台）。
    文と台本の正は _dev/script.py（data/script.js）。表示名は names.json。地形と草木は scene.js・nature.js。粒・線・流れの形は模式。 */
 import * as THREE from "three";
 import * as SC from "./scene.js";
@@ -18,7 +18,7 @@ window.__mk = { ready: false, app: APP };
 {
   const me = APP === "aoi" ? NM.aoi_app : NM.app, sub = APP === "aoi" ? NM.aoi_sub : NM.sub;
   const sw = (cur, href, name) => cur ? `<span class="on" aria-current="page">${name}</span>` : `<a href="${href}">${name}</a>`;
-  $("ttl").innerHTML = `<nav class="sw" aria-label="姉妹作の切りかえ">${sw(APP === "world", "./", NM.app)}<span class="ar" aria-hidden="true">⇄</span>${sw(APP === "aoi", "aoi.html", NM.aoi_app)}</nav>`;
+  $("ttl").innerHTML = `<span class="on">${NM.app}</span>`;
   $("subt").textContent = sub;
   $("h1").innerHTML = `<span>${me}</span>`;
   $("ssub").textContent = sub;
@@ -27,18 +27,18 @@ window.__mk = { ready: false, app: APP };
 }
 
 /* ---------------------------------------------------------------- 段の並び */
-const CH = APP === "aoi" ? [{ id: "aoi", name: NM.ch_aoi }, { id: "aend", name: NM.ch_end }] : [
-  { id: "world", name: NM.ch_world }, { id: "path", name: NM.ch_path }, { id: "try", name: NM.ch_try }, { id: "end", name: NM.ch_end },
+const CH = [
+  { id: "world", name: NM.ch_world }, { id: "aoi", name: NM.ch_aoi },
+  { id: "path", name: NM.ch_path }, { id: "try", name: NM.ch_try }, { id: "end", name: NM.ch_end },
 ];
 const AOI_ORDER = ["ear", "eye", "foot", "chest", "hand", "mind", "back"];
-const STEPS = APP === "aoi" ? [
-  { ch: "aoi", id: "a_intro", name: NM.ch_aoi },
-  ...AOI_ORDER.map(id => { const p = S.parts.find(x => x.id === id); return { ch: "aoi", id: "a_" + id, name: `${p.name.replace("（ことば）", "")}・${p.does}`, part: p }; }),
-  { ch: "aend", id: "a_end", name: NM.ch_end },
-] : [
+const STEPS = [
   { ch: "world", id: "world", name: NM.side_world },
   { ch: "world", id: "recv", name: NM.side_recv },
+  { ch: "world", id: "umwelt", name: "環世界を比べる" },
   ...S.lenses.map(l => ({ ch: "world", id: l.id, name: l.name, lens: l })),
+  { ch: "aoi", id: "a_intro", name: NM.ch_aoi },
+  ...AOI_ORDER.map(id => { const p = S.parts.find(x => x.id === id); return { ch: "aoi", id: "a_" + id, name: `${p.name.replace("（ことば）", "")}・${p.does}`, part: p }; }),
   ...S.stages.map((s, i) => ({ ch: "path", id: s.id, name: s.name, stage: i })),
   ...S.trials.map(t => ({ ch: "try", id: t.id, name: `${t.sense}・${t.name}`, trial: t })),
   { ch: "end", id: "end", name: NM.ch_end },
@@ -422,14 +422,14 @@ for (const L of LAYERS) { L.label = mkLabel(`<b>${L.name}</b><i>${L.note}</i>${L
 const gateLabels = S.stages.map((s, i) => { const L = mkLabel(`<span style="font-family:var(--mono);color:var(--ink-3);margin-right:6px">${s.no}</span>${s.name}`, "gate", () => V3(GX[i], PY - (gates[i].r || 1.4) - .35, PZ), () => go(STEPS.findIndex(x => x.id === s.id))); L.grp = "path"; return L; });
 const partBtns = S.parts.map(p => {
   const el = document.createElement("button"); el.className = "pt"; el.textContent = `${p.name.replace("（ことば）", "")}　${p.does}`; el.setAttribute("aria-label", `${p.name}：${p.does}`);
-  el.addEventListener("click", e => { e.stopPropagation(); if (APP === "aoi") go(STEPS.findIndex(x => x.id === "a_" + p.id)); else openPart(p.id); }); labelsEl.appendChild(el);
+  el.addEventListener("click", e => { e.stopPropagation(); if (cur.ch === "aoi") go(STEPS.findIndex(x => x.id === "a_" + p.id)); else openPart(p.id); }); labelsEl.appendChild(el);
   return { el, id: p.id };
 });
 const _v = new THREE.Vector3();
 function toScreen(v, W, H) { _v.copy(v).project(camera); return [(_v.x * .5 + .5) * W, (-_v.y * .5 + .5) * H, _v.z < 1 && _v.z > -1]; }
 function updateLabels() {
   const W = innerWidth, H = innerHeight;
-  const inWorld = APP === "world" && (cur.id === "world" || cur.id === "recv");
+  const inWorld = APP === "world" && (cur.id === "world" || cur.id === "recv" || cur.id === "umwelt");
   const cr = card.classList.contains("hide") ? null : card.getBoundingClientRect();
   for (const L of LB) {
     const vis = (L.grp === "world" && inWorld) || (L.grp === "path" && cur.ch === "path") || L.grp === "lens";
@@ -569,6 +569,7 @@ const sayEl = $("say"), subEl = $("sub");
 window.__voiceSrc = null;
 function say(lines, done) {
   const tok = ++sayTok; stopAudio();
+  sayEl.textContent = ""; window.__voiceSrc = null;
   let i = 0;
   const nextLine = () => {
     if (tok !== sayTok) return;
@@ -616,9 +617,10 @@ function openPart(id) {
   const p = S.parts.find(x => x.id === id); if (!p) return; openPartId = id;
   setCard(`<button class="back" id="pBack">← ${esc(NM.side_recv)}へ</button><div class="ck">碧の${esc(p.name)}・${esc(p.q)}</div><h2>${esc(p.does)}</h2>
     <p class="lead">${esc(p.act)}</p><div class="full"><div class="row aoi"><span class="k">技術</span>${esc(p.tech)}</div>
-    <div class="row"><span class="k">移せないもの</span>${esc(p.cannot)}</div>${linksOf(p.links)}${srcList(p.src)}</div><div class="links"><a href="aoi.html#a_${id}">${esc(NM.aoi_app)}で、くわしく →</a></div>`);
+    <div class="row"><span class="k">移せないもの</span>${esc(p.cannot)}</div>${linksOf(p.links)}${srcList(p.src)}</div><div class="links"><button class="back" id="pAoi">碧の受けとり方へ →</button></div>`);
   setMin(false);
   $("pBack").addEventListener("click", () => { openPartId = null; enter(false); });
+  $("pAoi").addEventListener("click", () => go(STEPS.findIndex(x => x.id === "a_" + id)));
   const a = partAnch[id];
   if (a) { const w = wposOf(a); goalTgt.copy(w); goalPos.copy(w).add(V3(.25, .1, MOBILE() ? 1.6 : 1.2)); }
   say(p.lines);
@@ -867,7 +869,7 @@ function tickLens(dt, t) {
 /* ---------------------------------------------------------------- 段へ入る */
 function viewOf(s) {
   if (s.lens) return "lens_" + s.lens.lens;
-  if (APP === "aoi") return s.id;
+  if (s.ch === "aoi") return s.id;
   if (s.ch === "world") return s.id;
   if (s.ch === "path") return "stage" + s.stage;
   if (s.ch === "end") return "end";
@@ -887,6 +889,16 @@ function enter(speak = true) {
   let lines = [];
   if (s.id === "world") { setCard(cardWorld(S.world, 0)); lines = (firstWorld && started && speak ? S.intro : []).concat(S.world.lines); if (started && speak) firstWorld = false; }
   else if (s.id === "recv") { setCard(cardWorld(S.recv, 1)); lines = S.recv.lines; }
+  else if (s.id === "umwelt") {
+    setCard(`<div class="ck">同じ場所・異なる手がかり</div><h2>環世界を比べる</h2><p class="lead">この欅の下は一つの場所。でも、受けとる感覚と行動が違えば、意味のある手がかりも変わる。</p><div class="full"><p>人は見える光や声を手がかりにする。ハチには花の紫外線反射が、コウモリには反響が手がかりになる。碧は測定した信号を人に届く形へ置きかえる。</p><p>色や音の表示は物理信号を伝える模型です。他の生きものの主観そのものを再現した画面ではありません。</p></div><div class="q">切り替えた後、この場所で何が気になる？</div>`);
+    ctlSet(`<button data-u="human" aria-pressed="true">人</button><button data-u="bee" aria-pressed="false">ハチの手がかり</button><button data-u="bat" aria-pressed="false">コウモリの手がかり</button><button data-u="aoi" aria-pressed="false">碧の道具</button>`);
+    for (const b of ctl.querySelectorAll("button")) b.addEventListener("click", () => {
+      for (const x of ctl.querySelectorAll("button")) x.setAttribute("aria-pressed", x === b ? "true" : "false");
+      const mode = b.dataset.u;
+      if (mode === "human") setLens(s);
+      else setLens({ id: "u_" + mode, ch: "world", lens: { lens: mode === "bat" ? "dusk" : "uv", labels: [] } });
+    });
+  }
   else if (s.lens) {
     const l = s.lens; setCard(`<div class="ck">${esc(NM.ch_world)}・${esc(l.name)}</div><h2>${esc(l.title)}</h2><p class="lead">${esc(l.lead)}</p>
       <div class="full"><ul>${l.body.map(b => `<li>${esc(b)}</li>`).join("")}</ul></div><div class="q">${esc(l.q)}</div><div class="full">${srcList(l.src)}</div>`);
@@ -937,7 +949,7 @@ addEventListener("keydown", e => {
   if (!started) return;
   if (e.target.tagName === "INPUT") return;
   if (e.key === "ArrowRight") go(si + 1); else if (e.key === "ArrowLeft") go(si - 1);
-  else if (/^[1-4]$/.test(e.key) && CH[+e.key - 1]) go(STEPS.findIndex(s => s.ch === CH[+e.key - 1].id));
+  else if (/^[1-5]$/.test(e.key) && CH[+e.key - 1]) go(STEPS.findIndex(s => s.ch === CH[+e.key - 1].id));
   else if (e.key === "Escape" && openPartId) { openPartId = null; enter(false); }
 });
 
